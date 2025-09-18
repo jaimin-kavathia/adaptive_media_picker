@@ -21,6 +21,7 @@ jobs:
         with:
           channel: stable
           flutter-version-file: .fvm/fvm_config.json
+          flutter-version: '3.35.3' # fallback version
 
       # Cache pub dependencies
       - name: Cache pub dependencies
