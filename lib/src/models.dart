@@ -7,6 +7,10 @@ import 'package:image_picker/image_picker.dart';
 ///
 /// - [image]: Pick still images (JPEG/PNG/HEIC, etc.)
 /// - [video]: Pick a single video file
+/// Target media type to pick.
+///
+/// - **image**: still images (e.g., JPG/PNG/HEIC)
+/// - **video**: single video file
 enum MediaType { image, video }
 
 /// Configuration options for a pick operation.
@@ -21,6 +25,7 @@ enum MediaType { image, video }
 ///   treated as `ImageSource.gallery`.
 /// - The "Open Settings" dialog can be configured for permanently denied cases
 ///   using the [showOpenSettingsDialog] flags and labels.
+/// Options that configure a pick operation.
 class PickOptions {
   /// Whether to allow selecting multiple images (gallery only).
   final bool allowMultiple;
@@ -63,6 +68,7 @@ class PickOptions {
   /// Cancel action label for "Open Settings".
   final String? cancelButtonLabel;
 
+  /// Create a set of options for a pick operation.
   const PickOptions({
     this.allowMultiple = false,
     this.mediaType = MediaType.image,
@@ -79,6 +85,7 @@ class PickOptions {
   });
 }
 
+/// A single piece of picked media (image or video).
 /// A single piece of picked media (image or video).
 class PickedMedia {
   /// Local file path (temporary or persistent) to the media.
@@ -103,20 +110,19 @@ class PickedMedia {
 
 /// Summary of a pick operation containing the selected [items]
 /// and how permissions were resolved.
+/// Result of a pick operation.
 class PickResult {
   final List<PickedMedia> items;
   final PermissionResolution permissionResolution;
 
-  const PickResult({
-    required this.items,
-    required this.permissionResolution,
-  });
+  const PickResult({required this.items, required this.permissionResolution});
 
   /// True when no items were selected.
   bool get isEmpty => items.isEmpty;
 }
 
 /// Describes the final permission state after a prompt/handling.
+/// Permission outcome after attempting to acquire access.
 class PermissionResolution {
   /// True if access is granted in any form.
   final bool granted;
@@ -133,23 +139,24 @@ class PermissionResolution {
     required this.permanentlyDenied,
   });
 
-  factory PermissionResolution.denied({bool permanentlyDenied = false}) => PermissionResolution(
+  factory PermissionResolution.denied({bool permanentlyDenied = false}) =>
+      PermissionResolution(
         granted: false,
         limited: false,
         permanentlyDenied: permanentlyDenied,
       );
 
   factory PermissionResolution.grantedFull() => const PermissionResolution(
-        granted: true,
-        limited: false,
-        permanentlyDenied: false,
-      );
+    granted: true,
+    limited: false,
+    permanentlyDenied: false,
+  );
 
   factory PermissionResolution.grantedLimited() => const PermissionResolution(
-        granted: true,
-        limited: true,
-        permanentlyDenied: false,
-      );
+    granted: true,
+    limited: true,
+    permanentlyDenied: false,
+  );
 }
 
 /// True when running on Apple OSes (iOS/macOS) outside of web.

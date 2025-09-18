@@ -4,11 +4,13 @@ import 'package:adaptive_media_picker/src/limited_access_picker.dart';
 
 void main() {
   testWidgets('LimitedAccessPicker shows scaffold structure', (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: LimitedAccessPicker(allowMultiple: true, maxImages: 3),
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: LimitedAccessPicker(allowMultiple: true, maxImages: 3),
+        ),
       ),
-    ));
+    );
 
     // AppBar title should be for images by default
     expect(find.text('Select images'), findsOneWidget);
@@ -16,5 +18,3 @@ void main() {
     expect(find.text('Done'), findsOneWidget);
   });
 }
-
-

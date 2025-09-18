@@ -12,7 +12,10 @@ void main() {
       if (!(Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
         return; // Skip on non-desktop to keep CI cross-platform-safe
       }
-      final res = await pm.ensureMediaPermission(source: ImageSource.gallery, mediaType: MediaType.image);
+      final res = await pm.ensureMediaPermission(
+        source: ImageSource.gallery,
+        mediaType: MediaType.image,
+      );
       expect(res.granted, true);
       expect(res.limited, false);
     });
@@ -21,11 +24,12 @@ void main() {
       if (!(Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
         return; // Skip on non-desktop to keep CI cross-platform-safe
       }
-      final res = await pm.ensureMediaPermission(source: ImageSource.camera, mediaType: MediaType.video);
+      final res = await pm.ensureMediaPermission(
+        source: ImageSource.camera,
+        mediaType: MediaType.video,
+      );
       expect(res.granted, true);
       expect(res.limited, false);
     });
   });
 }
-
-

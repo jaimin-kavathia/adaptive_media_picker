@@ -32,7 +32,6 @@ dependencies:
     sdk: flutter
   adaptive_media_picker:
     path: ../
-  permission_handler: ^12.0.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

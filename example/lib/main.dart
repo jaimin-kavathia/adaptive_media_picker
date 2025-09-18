@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:adaptive_media_picker/adaptive_media_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
 // This example demonstrates common usage patterns for AdaptiveMediaPicker:
 // - Single image from gallery
@@ -19,7 +20,9 @@ class ExampleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'adaptive_media_picker example',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue)),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+      ),
       home: const ExampleHomePage(),
       debugShowCheckedModeBanner: false,
     );
@@ -38,7 +41,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   List<PickedMedia> _items = const [];
   String _status = 'Ready';
 
-  bool get _isDesktop => !kIsWeb && (defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux);
+  bool get _isDesktop =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux);
 
   Future<void> _runPick({
     required bool allowMultiple,
@@ -82,7 +89,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final cameraDisabled = _isDesktop; // Desktop camera not supported without a delegate
+    final cameraDisabled =
+        _isDesktop; // Desktop camera not supported without a delegate
 
     return Scaffold(
       appBar: AppBar(title: const Text('adaptive_media_picker example')),
@@ -115,10 +123,10 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                   onPressed: cameraDisabled
                       ? null
                       : () => _runPick(
-                            allowMultiple: false,
-                            mediaType: MediaType.image,
-                            source: ImageSource.camera,
-                          ),
+                          allowMultiple: false,
+                          mediaType: MediaType.image,
+                          source: ImageSource.camera,
+                        ),
                   child: const Text('Pick image (camera)'),
                 ),
                 ElevatedButton(
@@ -133,10 +141,10 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                   onPressed: cameraDisabled
                       ? null
                       : () => _runPick(
-                            allowMultiple: false,
-                            mediaType: MediaType.video,
-                            source: ImageSource.camera,
-                          ),
+                          allowMultiple: false,
+                          mediaType: MediaType.video,
+                          source: ImageSource.camera,
+                        ),
                   child: const Text('Pick video (camera)'),
                 ),
               ],

@@ -16,10 +16,14 @@ import 'models.dart';
 /// - iOS: Uses `photo_manager` for read/write with limited mode handling.
 /// - Desktop (macOS/Windows/Linux): No runtime permission; relies on file
 ///   dialogs and app entitlements where applicable.
+/// Handles platform-specific permission flows for camera and media library.
 class PermissionManager {
   const PermissionManager();
 
   /// Ensures the required permissions are granted for the requested [source].
+  ///
+  /// Returns a [PermissionResolution] indicating whether access is granted,
+  /// limited, or denied (possibly permanently).
   Future<PermissionResolution> ensureMediaPermission({
     required ImageSource source,
     required MediaType mediaType,
@@ -40,9 +44,12 @@ class PermissionManager {
       if (mediaType == MediaType.video) {
         mic = await Permission.microphone.request();
       }
-      final permanentlyDenied = cam.isPermanentlyDenied || (mic?.isPermanentlyDenied ?? false);
-      if (cam.isGranted && (mic == null || mic.isGranted)) return PermissionResolution.grantedFull();
-      if (permanentlyDenied) return PermissionResolution.denied(permanentlyDenied: true);
+      final permanentlyDenied =
+          cam.isPermanentlyDenied || (mic?.isPermanentlyDenied ?? false);
+      if (cam.isGranted && (mic == null || mic.isGranted))
+        return PermissionResolution.grantedFull();
+      if (permanentlyDenied)
+        return PermissionResolution.denied(permanentlyDenied: true);
       return PermissionResolution.denied();
     }
 
@@ -56,15 +63,23 @@ class PermissionManager {
         if (mediaType == MediaType.video) {
           videosStatus = await Permission.videos.request();
         }
-        final bool permanentlyDenied = photosStatus.isPermanentlyDenied || (videosStatus?.isPermanentlyDenied ?? false);
-        if (permanentlyDenied) return PermissionResolution.denied(permanentlyDenied: true);
+        final bool permanentlyDenied =
+            photosStatus.isPermanentlyDenied ||
+            (videosStatus?.isPermanentlyDenied ?? false);
+        if (permanentlyDenied)
+          return PermissionResolution.denied(permanentlyDenied: true);
 
         // If either permission is limited, treat as limited
-        final bool isLimited = await Permission.photos.isLimited || (mediaType == MediaType.video ? (await Permission.videos.isLimited) : false);
+        final bool isLimited =
+            await Permission.photos.isLimited ||
+            (mediaType == MediaType.video
+                ? (await Permission.videos.isLimited)
+                : false);
         if (isLimited) return PermissionResolution.grantedLimited();
 
         // Otherwise, granted (full)
-        if (photosStatus.isGranted && (videosStatus == null || videosStatus.isGranted)) {
+        if (photosStatus.isGranted &&
+            (videosStatus == null || videosStatus.isGranted)) {
           return PermissionResolution.grantedFull();
         }
 
@@ -72,7 +87,8 @@ class PermissionManager {
       } else {
         final storage = await Permission.storage.request();
         if (storage.isGranted) return PermissionResolution.grantedFull();
-        if (storage.isPermanentlyDenied) return PermissionResolution.denied(permanentlyDenied: true);
+        if (storage.isPermanentlyDenied)
+          return PermissionResolution.denied(permanentlyDenied: true);
         return PermissionResolution.denied();
       }
     }
@@ -80,10 +96,14 @@ class PermissionManager {
     if (Platform.isIOS) {
       // Use permission_handler to reflect iOS Photos limited/full accurately
       final PermissionStatus status = await Permission.photos.request();
-      if (status.isPermanentlyDenied) return PermissionResolution.denied(permanentlyDenied: true);
-      if (!status.isGranted && !status.isLimited) return PermissionResolution.denied();
+      if (status.isPermanentlyDenied)
+        return PermissionResolution.denied(permanentlyDenied: true);
+      if (!status.isGranted && !status.isLimited)
+        return PermissionResolution.denied();
       final bool isLimited = await Permission.photos.isLimited;
-      return isLimited ? PermissionResolution.grantedLimited() : PermissionResolution.grantedFull();
+      return isLimited
+          ? PermissionResolution.grantedLimited()
+          : PermissionResolution.grantedFull();
     }
 
     if (Platform.isMacOS) {

@@ -79,5 +79,3 @@ void main() {
     expect(source, ImageSource.gallery);
   });
 }
-
-
