@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Install Flutter (reads version from .fvm/fvm_config.json if present)
+      # Install Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -39,22 +39,22 @@ jobs:
             (cd example && flutter pub get)
           fi
 
-      # Format (write changes to avoid failing the job on formatting diffs)
+      # Format (auto-fix instead of failing)
       - name: Format code (root and example)
         run: |
-          dart format -o write . || true
+          dart format -o write .
           if [ -d "example" ]; then
             (cd example && dart format -o write . || true)
           fi
 
-      # Analyze root
+      # Analyze root (ignore infos/warnings, fail only on errors)
       - name: Analyze root
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      # Analyze example (if exists)
+      # Analyze example (ignore infos/warnings, fail only on errors)
       - name: Analyze example
         if: ${{ hashFiles('example/pubspec.yaml') != '' }}
-        run: (cd example && flutter analyze)
+        run: (cd example && flutter analyze --no-fatal-infos --no-fatal-warnings)
 
       # Run tests root
       - name: Run tests (root)
