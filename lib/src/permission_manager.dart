@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -33,7 +31,10 @@ class PermissionManager {
     }
 
     // Desktop platforms: no runtime permission flow; rely on file selectors.
-    if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.macOS ||
+            defaultTargetPlatform == TargetPlatform.linux ||
+            defaultTargetPlatform == TargetPlatform.windows)) {
       return PermissionResolution.grantedFull();
     }
 
@@ -46,15 +47,17 @@ class PermissionManager {
       }
       final permanentlyDenied =
           cam.isPermanentlyDenied || (mic?.isPermanentlyDenied ?? false);
-      if (cam.isGranted && (mic == null || mic.isGranted))
+      if (cam.isGranted && (mic == null || mic.isGranted)) {
         return PermissionResolution.grantedFull();
-      if (permanentlyDenied)
+      }
+      if (permanentlyDenied) {
         return PermissionResolution.denied(permanentlyDenied: true);
+      }
       return PermissionResolution.denied();
     }
 
     // Gallery / library permissions
-    if (Platform.isAndroid) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       final int sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
       if (sdkInt >= 33) {
         // Request granular media permissions via permission_handler
@@ -66,8 +69,9 @@ class PermissionManager {
         final bool permanentlyDenied =
             photosStatus.isPermanentlyDenied ||
             (videosStatus?.isPermanentlyDenied ?? false);
-        if (permanentlyDenied)
+        if (permanentlyDenied) {
           return PermissionResolution.denied(permanentlyDenied: true);
+        }
 
         // If either permission is limited, treat as limited
         final bool isLimited =
@@ -87,26 +91,29 @@ class PermissionManager {
       } else {
         final storage = await Permission.storage.request();
         if (storage.isGranted) return PermissionResolution.grantedFull();
-        if (storage.isPermanentlyDenied)
+        if (storage.isPermanentlyDenied) {
           return PermissionResolution.denied(permanentlyDenied: true);
+        }
         return PermissionResolution.denied();
       }
     }
 
-    if (Platform.isIOS) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
       // Use permission_handler to reflect iOS Photos limited/full accurately
       final PermissionStatus status = await Permission.photos.request();
-      if (status.isPermanentlyDenied)
+      if (status.isPermanentlyDenied) {
         return PermissionResolution.denied(permanentlyDenied: true);
-      if (!status.isGranted && !status.isLimited)
+      }
+      if (!status.isGranted && !status.isLimited) {
         return PermissionResolution.denied();
+      }
       final bool isLimited = await Permission.photos.isLimited;
       return isLimited
           ? PermissionResolution.grantedLimited()
           : PermissionResolution.grantedFull();
     }
 
-    if (Platform.isMacOS) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
       return PermissionResolution.grantedFull();
     }
 
@@ -116,7 +123,7 @@ class PermissionManager {
   /// Presents the OS-provided limited access selection (iOS only).
   Future<void> presentLimitedIfAvailable() async {
     if (kIsWeb) return;
-    if (Platform.isIOS) {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
       await pm.PhotoManager.presentLimited(type: pm.RequestType.common);
     }
   }

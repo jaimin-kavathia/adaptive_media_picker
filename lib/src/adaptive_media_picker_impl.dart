@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -60,7 +58,10 @@ class AdaptiveMediaPicker {
     // On web and desktop platforms, camera capture is not supported.
     // If the caller requests camera, transparently fall back to gallery.
     final bool isDesktop =
-        !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.macOS ||
+            defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.linux);
     final ImageSource effectiveSource =
         (kIsWeb || isDesktop) && options.source == ImageSource.camera
         ? ImageSource.gallery
@@ -161,7 +162,9 @@ class AdaptiveMediaPicker {
 
     // Android 13+ edge case: user selected limited for images but not videos (or vice versa).
     // Even if permission looks "full", if the requested media type list is empty, force limited UI.
-    if (Platform.isAndroid && effectiveSource == ImageSource.gallery) {
+    if (!kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.android &&
+        effectiveSource == ImageSource.gallery) {
       final sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
       if (sdkInt >= 33) {
         final RequestType type = wantsVideo
@@ -221,8 +224,9 @@ class AdaptiveMediaPicker {
         final XFile? video = await _picker.pickVideo(
           source: ImageSource.camera,
         );
-        if (video == null)
+        if (video == null) {
           return PickResult(items: const [], permissionResolution: permission);
+        }
         return PickResult(
           items: [PickedMedia(path: video.path, mimeType: null)],
           permissionResolution: permission,
@@ -231,8 +235,9 @@ class AdaptiveMediaPicker {
         final XFile? video = await _picker.pickVideo(
           source: ImageSource.gallery,
         );
-        if (video == null)
+        if (video == null) {
           return PickResult(items: const [], permissionResolution: permission);
+        }
         return PickResult(
           items: [PickedMedia(path: video.path, mimeType: null)],
           permissionResolution: permission,
@@ -286,6 +291,8 @@ class AdaptiveMediaPicker {
       }
     }
 
+    // Desktop support is delegated to image_picker's desktop implementations.
+
     final XFile? image = await _picker.pickImage(
       source: effectiveSource,
       imageQuality: options.imageQuality,
@@ -325,7 +332,7 @@ class AdaptiveMediaPicker {
     final String settingsLabel = options.settingsButtonLabel ?? 'Open Settings';
     final String cancelLabel = options.cancelButtonLabel ?? 'Cancel';
 
-    if (Platform.isIOS) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
       if (!context.mounted) return false;
       return await showCupertinoDialog<bool>(
             context: context,

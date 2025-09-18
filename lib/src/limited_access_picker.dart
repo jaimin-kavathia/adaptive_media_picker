@@ -1,6 +1,4 @@
-import 'dart:typed_data';
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -104,9 +102,12 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
 
   Future<void> _promptManageLimited(RequestType type) async {
     final isVideo = widget.mediaType == MediaType.video;
-    final platformMessage = Platform.isIOS
+    final bool isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final bool isMacOS =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
+    final platformMessage = isIOS
         ? 'Go to: Settings > App > Photos > Limited Access > Select ${isVideo ? 'videos' : 'images'} to share with this app.'
-        : Platform.isMacOS
+        : isMacOS
         ? 'Go to: System Settings > Privacy & Security > Photos > Enable access for this app. Then select ${isVideo ? 'videos' : 'images'}.'
         : 'Go to: Settings > Apps > This app > Permissions > Photos and Videos > Select limited ${isVideo ? 'videos' : 'images'} for this app.';
 
@@ -115,7 +116,7 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
       builder: (ctx) => AlertDialog(
         title: Text(isVideo ? 'No videos available' : 'No images available'),
         content: Text(
-          (Platform.isIOS || Platform.isMacOS)
+          (isIOS || isMacOS)
               ? 'You are in limited access mode. $platformMessage'
               : 'No ${isVideo ? 'videos' : 'images'} found under limited access. $platformMessage',
         ),
@@ -124,7 +125,7 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
             onPressed: () => Navigator.of(ctx).pop(_LimitedAction.cancel),
             child: const Text('Cancel'),
           ),
-          if (Platform.isIOS || Platform.isMacOS)
+          if (isIOS || isMacOS)
             TextButton(
               onPressed: () =>
                   Navigator.of(ctx).pop(_LimitedAction.manageLimited),
@@ -141,7 +142,7 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
     if (!mounted) return;
     switch (action) {
       case _LimitedAction.manageLimited:
-        if (Platform.isIOS) {
+        if (isIOS) {
           await PhotoManager.presentLimited(type: type);
           await Future.delayed(const Duration(milliseconds: 300));
           // Reload after user adjusted selection
@@ -160,7 +161,7 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
                   .toList();
             });
           }
-        } else if (Platform.isMacOS) {
+        } else if (isMacOS) {
           // macOS does not show presentLimited; open settings instead and close sheet
           await openAppSettings();
           if (mounted) Navigator.of(context).pop(null);

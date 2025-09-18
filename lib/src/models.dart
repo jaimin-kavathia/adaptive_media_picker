@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 /// Kind of media to pick.
@@ -158,9 +155,3 @@ class PermissionResolution {
     permanentlyDenied: false,
   );
 }
-
-/// True when running on Apple OSes (iOS/macOS) outside of web.
-///
-/// This is a convenience that some apps may find useful when presenting
-/// platform-specific messaging or UI.
-bool get isApple => !kIsWeb && (Platform.isIOS || Platform.isMacOS);
