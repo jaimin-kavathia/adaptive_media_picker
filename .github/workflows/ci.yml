@@ -1,4 +1,4 @@
-name: CI
+name: Flutter CI
 
 on:
   push:
@@ -11,57 +11,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      # Checkout source
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Flutter Version Manager (FVM)
-        run: |
-          dart --version || sudo apt-get update -y && sudo apt-get install -y wget unzip xz-utils libglu1-mesa
-          # Install Dart SDK (for activating FVM) if not present
-          if ! command -v dart >/dev/null 2>&1; then
-            DART_SDK_URL="https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip"
-            wget -qO /tmp/dart.zip "$DART_SDK_URL"
-            sudo unzip -q /tmp/dart.zip -d /opt
-            echo "/opt/dart-sdk/bin" >> $GITHUB_PATH
-          fi
-          dart pub global activate fvm
-          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+      # Install Flutter (reads version from .fvm/fvm_config.json if present)
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: .fvm/fvm_config.json
 
-      - name: Cache pub and FVM
+      # Cache pub dependencies
+      - name: Cache pub dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/.pub-cache
-            ~/.fvm
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}-fvm-${{ hashFiles('.fvm/**', '.fvmrc') }}
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
 
-      - name: Install Flutter via FVM
+      # Install dependencies (root + example)
+      - name: Install dependencies
         run: |
-          fvm --version
-          # Use version from project config; falls back to stable if missing
-          if [ -f .fvm/fvm_config.json ]; then
-            VERSION=$(jq -r '.flutterSdkVersion // empty' .fvm/fvm_config.json)
-          elif [ -f .fvm/version ]; then
-            VERSION=$(cat .fvm/version)
-          else
-            VERSION=stable
+          flutter pub get
+          if [ -d "example" ]; then
+            (cd example && flutter pub get)
           fi
-          fvm install "$VERSION"
-          fvm flutter --version
 
-      - name: Pub get (root and example)
-        run: |
-          fvm flutter pub get
-          (cd example && fvm flutter pub get)
+      # Format check
+      - name: Check formatting
+        run: dart format --set-exit-if-changed .
 
-      - name: Analyze (root)
-        run: fvm flutter analyze
+      # Analyze root
+      - name: Analyze root
+        run: flutter analyze
 
-      - name: Analyze (example)
-        run: (cd example && fvm flutter analyze)
+      # Analyze example (if exists)
+      - name: Analyze example
+        if: ${{ hashFiles('example/pubspec.yaml') != '' }}
+        run: (cd example && flutter analyze)
 
+      # Run tests root
       - name: Run tests (root)
-        run: fvm flutter test --no-pub
+        run: flutter test --no-pub
 
+      # Run tests example (if exists)
       - name: Run tests (example)
-        run: (cd example && fvm flutter test --no-pub)
+        if: ${{ hashFiles('example/pubspec.yaml') != '' }}
+        run: (cd example && flutter test --no-pub)
