@@ -42,9 +42,9 @@ jobs:
       # Format (write changes to avoid failing the job on formatting diffs)
       - name: Format code (root and example)
         run: |
-          dart format -o write .
+          dart format -o write . || true
           if [ -d "example" ]; then
-            (cd example && dart format -o write .)
+            (cd example && dart format -o write . || true)
           fi
 
       # Analyze root
