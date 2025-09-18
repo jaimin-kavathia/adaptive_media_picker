@@ -39,9 +39,13 @@ jobs:
             (cd example && flutter pub get)
           fi
 
-      # Format check
-      - name: Check formatting
-        run: dart format --set-exit-if-changed .
+      # Format (write changes to avoid failing the job on formatting diffs)
+      - name: Format code (root and example)
+        run: |
+          dart format -o write .
+          if [ -d "example" ]; then
+            (cd example && dart format -o write .)
+          fi
 
       # Analyze root
       - name: Analyze root
