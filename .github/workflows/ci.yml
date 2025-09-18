@@ -19,9 +19,9 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.35.3'
           channel: stable
-          flutter-version-file: .fvm/fvm_config.json
-          flutter-version: '3.35.3' # fallback version
+          architecture: x64
 
       # Cache pub dependencies
       - name: Cache pub dependencies
