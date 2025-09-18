@@ -19,20 +19,18 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code settings (keep if you want to share workspace settings)
+.vscode/
 
 # Flutter/Dart/Pub related
-# Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
+# Libraries should not include pubspec.lock (root only)
 /pubspec.lock
+# Allow example app lockfile
+!example/pubspec.lock
 **/doc/api/
 .dart_tool/
 .packages
 build/
-# If you're building an application, you may want to check-in your pubspec.lock
-pubspec.lock
 
 # Directory created by dartdoc
 # If you don't generate documentation locally you can remove this line.
@@ -56,3 +54,24 @@ doc/api/
 .flutter-plugins-dependencies
 /build/
 /coverage/
+
+# FVM (Flutter Version Management)
+.fvm/flutter_sdk
+.fvm/versions/
+.fvm/release
+.fvm/version
+
+# Android
+**/.gradle/
+**/local.properties
+**/captures/
+**/outputs/
+
+# iOS/macOS (CocoaPods and symlinks)
+**/Pods/
+**/.symlinks/
+**/Flutter/Generated.xcconfig
+**/Flutter/ephemeral/
+**/.generated/
+**/xcuserdata/
+**/.last_build_id

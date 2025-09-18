@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   build:
@@ -65,5 +65,3 @@ jobs:
 
       - name: Run tests (example)
         run: (cd example && fvm flutter test --no-pub)
-
-
