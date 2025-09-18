@@ -1,0 +1,7 @@
+.fvm/
+.vscode/
+.idea/
+*.iml
+build/
+example/build/
+*.lock
