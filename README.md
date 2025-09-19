@@ -91,8 +91,19 @@ When the OS is in limited mode and no items are currently shared:
 - A dialog appears offering Manage Selection (iOS only; macOS opens settings) and Open Settings
 - If the user chooses either action, the limited-access bottom sheet closes by default
 
+Screenshots (limited-access UI):
+
+![Limited access - pick image](assets/images/limited_access_image_pick.jpg)
+
+![Limited access - pick multiple images](assets/images/limited_access_multi_image_pick.jpg)
+
+![Limited access - pick video](assets/images/limited_access_video_pick.jpg)
+
+Note: In full-access mode, the platform system UI is used instead of this sheet.
+
 ## Notes
 
+- You do not need to manage permissions yourself when using this package. The picker handles camera/photos permissions (including limited access) for you.
 - `PickOptions.maxImages` applies to images only and is enforced on every platform (including web/desktop) even if the platform returns more.
 
 ## Platform setup
