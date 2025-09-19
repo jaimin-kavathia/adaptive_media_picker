@@ -19,6 +19,10 @@ import '../core/models.dart';
 class PermissionManager {
   const PermissionManager();
 
+  /// Testing hook: when true, `ensureMediaPermission` short-circuits to
+  /// grantedFull to avoid invoking platform channels in headless CI.
+  static bool bypassPlatformChannelsForTests = false;
+
   /// Ensures the required permissions are granted for the requested [source].
   ///
   /// Returns a [PermissionResolution] indicating whether access is granted,
@@ -27,6 +31,9 @@ class PermissionManager {
     required ImageSource source,
     required MediaType mediaType,
   }) async {
+    if (bypassPlatformChannelsForTests) {
+      return PermissionResolution.grantedFull();
+    }
     if (kIsWeb) {
       return PermissionResolution.grantedFull();
     }

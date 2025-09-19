@@ -8,6 +8,8 @@ void main() {
     setUpAll(() {
       // Initialize Flutter binding for method channel access
       TestWidgetsFlutterBinding.ensureInitialized();
+      // Avoid platform channel calls in CI by short-circuiting permission checks
+      PermissionManager.bypassPlatformChannelsForTests = true;
     });
 
     test('returns grantedFull for gallery on desktop platforms', () async {
