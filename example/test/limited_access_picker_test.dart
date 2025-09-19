@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:adaptive_media_picker/src/limited_access_picker.dart';
+import 'package:adaptive_media_picker/adaptive_media_picker.dart';
 
 void main() {
   testWidgets('LimitedAccessPicker shows scaffold structure', (tester) async {

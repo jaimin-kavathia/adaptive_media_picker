@@ -47,22 +47,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
           defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.linux);
 
-  Future<void> _runPick({
-    required bool allowMultiple,
-    required MediaType mediaType,
-    required ImageSource source,
-    int? maxImages,
-  }) async {
+  Future<void> _runPickSingleImage({required ImageSource source}) async {
     setState(() => _status = 'Requesting...');
-
-    // The picker handles permissions, limited-access UI, and platform caveats.
-    // On web/desktop, ImageSource.camera automatically falls back to gallery.
     final result = await _picker.pickImage(
       context: context,
       options: PickOptions(
-        allowMultiple: allowMultiple,
-        mediaType: mediaType,
-        maxImages: maxImages,
         source: source,
         imageQuality: 80,
         showOpenSettingsDialog: true,
@@ -72,18 +61,73 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
         cancelButtonLabel: 'Cancel',
       ),
     );
-
     setState(() {
-      _items = result.items;
       if (!result.permissionResolution.granted) {
+        _items = const [];
         _status = result.permissionResolution.permanentlyDenied
             ? 'Permission permanently denied. Prompted to open settings.'
             : 'Permission denied.';
-      } else if (result.permissionResolution.limited) {
-        _status = 'Limited access: selected ${result.items.length} item(s).';
       } else {
-        _status = 'Picked ${result.items.length} item(s).';
+        _items = result.item == null ? const [] : [result.item!];
       }
+      _status = 'Picked ${_items.length} item(s).';
+
+    });
+  }
+
+  Future<void> _runPickMultiImage({int? maxImages}) async {
+    setState(() => _status = 'Requesting...');
+    final result = await _picker.pickMultiImage(
+      context: context,
+      options: PickOptions(
+        maxImages: maxImages,
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        showOpenSettingsDialog: true,
+        settingsDialogTitle: 'Permission required',
+        settingsDialogMessage: 'Please allow Photos/Camera to continue.',
+        settingsButtonLabel: 'Open Settings',
+        cancelButtonLabel: 'Cancel',
+      ),
+    );
+    setState(() {
+      if (!result.permissionResolution.granted) {
+        _items = const [];
+        _status = result.permissionResolution.permanentlyDenied
+            ? 'Permission permanently denied. Prompted to open settings.'
+            : 'Permission denied.';
+      } else {
+        _items = result.items;
+      }
+      _status = 'Picked ${_items.length} item(s).';
+
+    });
+  }
+
+  Future<void> _runPickVideo({required ImageSource source}) async {
+    setState(() => _status = 'Requesting...');
+    final result = await _picker.pickVideo(
+      context: context,
+      options: PickOptions(
+        source: source,
+        showOpenSettingsDialog: true,
+        settingsDialogTitle: 'Permission required',
+        settingsDialogMessage: 'Please allow Photos/Camera to continue.',
+        settingsButtonLabel: 'Open Settings',
+        cancelButtonLabel: 'Cancel',
+      ),
+    );
+    setState(() {
+      if (!result.permissionResolution.granted) {
+        _items = const [];
+        _status = result.permissionResolution.permanentlyDenied
+            ? 'Permission permanently denied. Prompted to open settings.'
+            : 'Permission denied.';
+      } else {
+        _items = result.item == null ? const [] : [result.item!];
+      }
+      _status = 'Picked ${_items.length} item(s).';
+
     });
   }
 
@@ -103,48 +147,27 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               runSpacing: 12,
               children: [
                 ElevatedButton(
-                  onPressed: () => _runPick(
-                    allowMultiple: false,
-                    mediaType: MediaType.image,
-                    source: ImageSource.gallery,
-                  ),
+                  onPressed: () => _runPickSingleImage(source: ImageSource.gallery),
                   child: const Text('Pick image (gallery)'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _runPick(
-                    allowMultiple: true,
-                    mediaType: MediaType.image,
-                    source: ImageSource.gallery,
-                    maxImages: 5,
-                  ),
+                  onPressed: () => _runPickMultiImage(maxImages: 5),
                   child: const Text('Pick multiple images (gallery)'),
                 ),
                 ElevatedButton(
                   onPressed: cameraDisabled
                       ? null
-                      : () => _runPick(
-                          allowMultiple: false,
-                          mediaType: MediaType.image,
-                          source: ImageSource.camera,
-                        ),
+                      : () => _runPickSingleImage(source: ImageSource.camera),
                   child: const Text('Pick image (camera)'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _runPick(
-                    allowMultiple: false,
-                    mediaType: MediaType.video,
-                    source: ImageSource.gallery,
-                  ),
+                  onPressed: () => _runPickVideo(source: ImageSource.gallery),
                   child: const Text('Pick video (gallery)'),
                 ),
                 ElevatedButton(
                   onPressed: cameraDisabled
                       ? null
-                      : () => _runPick(
-                          allowMultiple: false,
-                          mediaType: MediaType.video,
-                          source: ImageSource.camera,
-                        ),
+                      : () => _runPickVideo(source: ImageSource.camera),
                   child: const Text('Pick video (camera)'),
                 ),
               ],

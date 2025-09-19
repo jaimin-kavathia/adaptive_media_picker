@@ -5,3 +5,8 @@
 build/
 example/build/
 *.lock
+
+# Old moved files (kept in repo history but not published)
+lib/src/limited_access_picker.dart
+lib/src/models.dart
+lib/src/permission_manager.dart

@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'models.dart';
+import '../core/models.dart';
 
 /// Simple, package-provided limited access picker UI.
-/// Apps can provide their own UI by not using this and handling assets directly.
-/// Bottom-sheet grid UI used when OS grants limited photo/video access.
+///
+/// Shows a modal bottom sheet with a grid of assets when the OS grants
+/// limited access to Photos. Apps can provide their own UI by not using
+/// this and handling `photo_manager` assets directly.
 class LimitedAccessPicker extends StatefulWidget {
   final bool allowMultiple;
   final int? maxImages;
@@ -86,7 +88,8 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
           )
           .toList();
       if (filtered.isEmpty) {
-        // Limited access likely has no selected items; offer to manage limited selection or open settings
+        // No visible items under limited access. Offer to manage selection or open settings.
+        // If the user chooses to manage or open settings, the bottom sheet will close by default.
         await _promptManageLimited(requestType);
       }
       setState(() {
@@ -144,23 +147,8 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
       case _LimitedAction.manageLimited:
         if (isIOS) {
           await PhotoManager.presentLimited(type: type);
-          await Future.delayed(const Duration(milliseconds: 300));
-          // Reload after user adjusted selection
-          final List<AssetPathEntity> albums =
-              await PhotoManager.getAssetPathList(onlyAll: true, type: type);
-          if (albums.isNotEmpty) {
-            final List<AssetEntity> assets = await albums.first
-                .getAssetListRange(start: 0, end: 500);
-            setState(() {
-              _assets = assets
-                  .where(
-                    (a) => widget.mediaType == MediaType.video
-                        ? a.type == AssetType.video
-                        : a.type == AssetType.image,
-                  )
-                  .toList();
-            });
-          }
+          // Close the bottom sheet by default after navigating to manage limited selection.
+          if (mounted) Navigator.of(context).pop(null);
         } else if (isMacOS) {
           // macOS does not show presentLimited; open settings instead and close sheet
           await openAppSettings();
@@ -333,3 +321,5 @@ class _ThumbState extends State<_Thumb> {
     );
   }
 }
+
+

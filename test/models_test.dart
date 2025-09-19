@@ -5,8 +5,6 @@ void main() {
   group('PickOptions', () {
     test('defaults are as expected', () {
       const opts = PickOptions();
-      expect(opts.allowMultiple, false);
-      expect(opts.mediaType, MediaType.image);
       expect(opts.maxImages, isNull);
       expect(opts.imageQuality, isNull);
       expect(opts.maxWidth, isNull);
@@ -21,8 +19,6 @@ void main() {
 
     test('custom values are stored correctly', () {
       const opts = PickOptions(
-        allowMultiple: true,
-        mediaType: MediaType.video,
         maxImages: 7,
         imageQuality: 80,
         maxWidth: 1024,
@@ -34,8 +30,6 @@ void main() {
         settingsButtonLabel: 's',
         cancelButtonLabel: 'c',
       );
-      expect(opts.allowMultiple, true);
-      expect(opts.mediaType, MediaType.video);
       expect(opts.maxImages, 7);
       expect(opts.imageQuality, 80);
       expect(opts.maxWidth, 1024);

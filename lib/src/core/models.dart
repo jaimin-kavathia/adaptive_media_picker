@@ -10,27 +10,28 @@ import 'package:image_picker/image_picker.dart';
 /// - **video**: single video file
 enum MediaType { image, video }
 
-/// Configuration options for a pick operation.
+/// Configuration options for a pick operation (method-specific defaults apply).
 ///
-/// - Set [allowMultiple] to true to enable multi-selection (gallery only).
-/// - Use [mediaType] to choose between images or videos.
-/// - [maxImages] limits number of images in multi-pick.
-/// - [imageQuality], [maxWidth], [maxHeight] are forwarded to `image_picker` for
-///   image scenarios when full access is granted.
+/// - [maxImages] limits the number of images in multi-pick. Applies to images only.
+/// - [imageQuality], [maxWidth], [maxHeight] are forwarded to `image_picker` when
+///   picking images with full access.
 /// - [source] chooses camera or gallery. On platforms where camera capture is
 ///   not supported (web and desktop), `ImageSource.camera` is automatically
 ///   treated as `ImageSource.gallery`.
 /// - The "Open Settings" dialog can be configured for permanently denied cases
 ///   using the [showOpenSettingsDialog] flags and labels.
+///
+/// Note:
+/// - Use `pickImage` for a single image.
+/// - Use `pickVideo` for a single video (multi-select is not supported by native APIs).
+/// - Use `pickMultiImage` for multiple images; [maxImages] constrains the count.
+///   The limit is enforced cross-platform even if the underlying platform allows
+///   selecting more.
 /// Options that configure a pick operation.
 class PickOptions {
-  /// Whether to allow selecting multiple images (gallery only).
-  final bool allowMultiple;
-
-  /// Target media type to pick.
-  final MediaType mediaType;
-
-  /// Max number of images to return when [allowMultiple] is true.
+  /// Max number of images to return when using `pickMultiImage`.
+  ///
+  /// This applies to images only and is ignored by `pickImage`/`pickVideo`.
   final int? maxImages;
 
   /// JPEG compression quality forwarded to `image_picker` (0-100).
@@ -67,8 +68,6 @@ class PickOptions {
 
   /// Create a set of options for a pick operation.
   const PickOptions({
-    this.allowMultiple = false,
-    this.mediaType = MediaType.image,
     this.maxImages,
     this.imageQuality,
     this.maxWidth,
@@ -105,14 +104,21 @@ class PickedMedia {
   });
 }
 
-/// Summary of a pick operation containing the selected [items]
-/// and how permissions were resolved.
-/// Result of a pick operation.
-class PickResult {
+/// Result for single-pick flows (image or video). [item] is null if nothing selected.
+class PickResultSingle {
+  final PickedMedia? item;
+  final PermissionResolution permissionResolution;
+  const PickResultSingle({required this.item, required this.permissionResolution});
+
+  /// True when no item was selected.
+  bool get isEmpty => item == null;
+}
+
+/// Result for multi-image flows. [items] may be empty if nothing selected.
+class PickResultMultiple {
   final List<PickedMedia> items;
   final PermissionResolution permissionResolution;
-
-  const PickResult({required this.items, required this.permissionResolution});
+  const PickResultMultiple({required this.items, required this.permissionResolution});
 
   /// True when no items were selected.
   bool get isEmpty => items.isEmpty;
@@ -155,3 +161,5 @@ class PermissionResolution {
     permanentlyDenied: false,
   );
 }
+
+

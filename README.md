@@ -2,29 +2,48 @@
 
 Adaptive media picking for Flutter with smart permission handling and limited-access UI for iOS/macOS and modern Android.
 
-## What this package does
+## Features
 
-- Picks images (single/multiple) and videos (single) across platforms
-- Handles permissions automatically per platform and API level
-- Detects limited access (iOS and Android 14+) and presents a built-in grid UI to select from allowed items
-- Prompts to manage limited selection or open settings when nothing is shared yet
+- Single image, single video, and multiple images (with max limit)
+- Automatic permission handling (Android/iOS) with limited access flow
+- Built-in limited-access bottom sheet using `photo_manager`
+- Sensible fallbacks (camera → gallery on desktop/web)
+- Web-compatible (no dart:io in library code)
 
-> Platform support note: Camera capture is not supported on web or desktop (Windows, macOS, Linux). On these platforms only gallery/file picking is available.
+> Note: Camera capture is not supported on web or desktop (Windows, macOS, Linux). On these platforms only gallery/file picking is available.
 
 ## Quick start
 
 ```dart
 final picker = AdaptiveMediaPicker();
-final result = await picker.pickImage(
+
+// Single image
+final singleImage = await picker.pickImage(
   context: context,
   options: const PickOptions(
-    mediaType: MediaType.image,
-    allowMultiple: true,
-    maxImages: 5,
     source: ImageSource.gallery,
     imageQuality: 80,
   ),
 );
+if (singleImage.item != null) {
+  // use singleImage.item
+}
+
+// Multiple images (max 5)
+final multiImages = await picker.pickMultiImage(
+  context: context,
+  options: const PickOptions(maxImages: 5, source: ImageSource.gallery),
+);
+// use multiImages.items
+
+// Single video
+final singleVideo = await picker.pickVideo(
+  context: context,
+  options: const PickOptions(source: ImageSource.gallery),
+);
+if (singleVideo.item != null) {
+  // use singleVideo.item
+}
 ```
 
 ## Use cases
@@ -33,7 +52,7 @@ final result = await picker.pickImage(
 - Pick multiple images (gallery only)
 - Pick single video (gallery or camera)
 
-### Quick scenarios
+### Scenarios
 
 ```dart
 final picker = AdaptiveMediaPicker();
@@ -41,57 +60,44 @@ final picker = AdaptiveMediaPicker();
 // 1) Single image from gallery
 final singleImage = await picker.pickImage(
   context: context,
-  options: const PickOptions(mediaType: MediaType.image, source: ImageSource.gallery),
+  options: const PickOptions(source: ImageSource.gallery),
 );
 
 // 2) Multiple images (max 5) from gallery
-final multipleImages = await picker.pickImage(
+final multipleImages = await picker.pickMultiImage(
   context: context,
-  options: const PickOptions(allowMultiple: true, maxImages: 5),
+  options: const PickOptions(maxImages: 5, source: ImageSource.gallery),
 );
 
 // 3) Single video from gallery
-final singleVideo = await picker.pickImage(
+final singleVideo = await picker.pickVideo(
   context: context,
-  options: const PickOptions(mediaType: MediaType.video, source: ImageSource.gallery),
+  options: const PickOptions(source: ImageSource.gallery),
 );
 
 // 4) Camera request (falls back to gallery on web/desktop)
 final cameraAttempt = await picker.pickImage(
   context: context,
-  options: const PickOptions(mediaType: MediaType.image, source: ImageSource.camera),
+  options: const PickOptions(source: ImageSource.camera),
 );
 ```
 
-> Note: Multiple video selection is not supported yet.
+> Multiple video selection is not supported by native APIs.
 
 ## Limited access UX
 
 When the OS is in limited mode and no items are currently shared:
 
-- A dialog appears offering:
-  - Manage Selection (iOS only; macOS opens settings)
-  - Open Settings
-- After adjustment, the grid reloads with available items.
+- A dialog appears offering Manage Selection (iOS only; macOS opens settings) and Open Settings
+- If the user chooses either action, the limited-access bottom sheet closes by default
 
-## Desktop (Windows, macOS, Linux)
+## Notes
 
-- Uses `file_selector` under the hood via `image_picker`.
-- No runtime permission prompts are shown; access is granted by the OS file dialog.
-- Camera capture is not supported on desktop; only gallery/file picking is available.
-- macOS requires:
+- `PickOptions.maxImages` applies to images only and is enforced on every platform (including web/desktop) even if the platform returns more.
 
-```xml
-<key>com.apple.security.files.user-selected.read-only</key>
-<true/>
-```
+## Platform setup
 
-## Web
-
-- Camera capture is not supported on web.
-- Image and video selection works via the browser file picker when using `ImageSource.gallery`.
-
-## Android setup
+### Android
 
 `android/app/src/main/AndroidManifest.xml`:
 
@@ -103,9 +109,9 @@ When the OS is in limited mode and no items are currently shared:
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 ```
 
-## iOS setup
+### iOS
 
-- Info.plist keys:
+Add to Info.plist:
 
 ```xml
 <key>NSPhotoLibraryUsageDescription</key>
@@ -118,38 +124,34 @@ When the OS is in limited mode and no items are currently shared:
 <string>This app may save images/videos to your photo library.</string>
 ```
 
-- Podfile macros: enable only the permissions you use (see permission_handler docs).
+### Desktop (Windows, macOS, Linux)
+
+- Uses `file_selector` via `image_picker`.
+- No runtime permission prompts; access is granted by the OS file dialog.
+- Camera capture is not supported.
+- On macOS, ensure:
+
+```xml
+<key>com.apple.security.files.user-selected.read-only</key>
+<true/>
+```
+
+### Web
+
+- Camera capture is not supported.
+- Image/video selection uses the browser file picker with `ImageSource.gallery`.
 
 ## API overview
 
-- `PickOptions` config:
-  - `mediaType`, `allowMultiple`, `maxImages`, `imageQuality`, `maxWidth`, `maxHeight`, `source`
+- `PickOptions`:
+  - `maxImages` (images only), `imageQuality`, `maxWidth`, `maxHeight`, `source`
   - Settings dialog: `showOpenSettingsDialog`, `settingsDialogTitle|Message|ButtonLabel|cancelButtonLabel`
-- `PickResult`: `items` + `permissionResolution` (granted/limited/permanentlyDenied)
-- `AdaptiveMediaPicker.pickImage`: main entry point
-
-## Behavior matrix
-
-- Full access → `image_picker` is used directly
-- Limited access → built-in grid UI (images/videos)
-- Denied → optional Open Settings dialog
-
-## Acknowledgments
-
-- device_info_plus, flutter_screenutil, image_picker, permission_handler, photo_manager
+- Results:
+  - `PickResultSingle { item, permissionResolution }`
+  - `PickResultMultiple { items, permissionResolution }`
+- Methods:
+  - `pickImage`, `pickVideo`, `pickMultiImage`
 
 ## License
 
-See `LICENSE`.
-
-## Android configuration
-
-- Use recent toolchain versions:
-  - Gradle wrapper 7.5.1+ (example uses 8.x)
-  - Kotlin 1.7.22+ (example uses 2.x)
-  - Android Gradle Plugin 7.2.2+ (managed by Flutter tooling)
-- Android 10 (API 29) scoped storage:
-  - Avoid `android:requestLegacyExternalStorage="true"` as Play may reject it.
-  - If you target 29 and rely on file paths, consider caching via `PhotoManager.clearFileCache()` at startup.
-- Glide:
-  - `photo_manager` uses Glide for thumbnails. If you see Glide warnings, add an `AppGlideModule` per Glide docs in your Android app.
+MIT

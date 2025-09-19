@@ -2,16 +2,20 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:adaptive_media_picker/adaptive_media_picker.dart';
-import 'package:adaptive_media_picker/src/permission_manager.dart';
 
 void main() {
   group('PermissionManager on desktop', () {
-    final pm = const PermissionManager();
+    setUpAll(() {
+      // Initialize Flutter binding for method channel access
+      TestWidgetsFlutterBinding.ensureInitialized();
+    });
 
     test('returns grantedFull for gallery on desktop platforms', () async {
       if (!(Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
         return; // Skip on non-desktop to keep CI cross-platform-safe
       }
+
+      final pm = const PermissionManager();
       final res = await pm.ensureMediaPermission(
         source: ImageSource.gallery,
         mediaType: MediaType.image,
@@ -24,6 +28,8 @@ void main() {
       if (!(Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
         return; // Skip on non-desktop to keep CI cross-platform-safe
       }
+
+      final pm = const PermissionManager();
       final res = await pm.ensureMediaPermission(
         source: ImageSource.camera,
         mediaType: MediaType.video,

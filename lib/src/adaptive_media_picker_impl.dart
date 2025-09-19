@@ -4,11 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 
-import 'limited_access_picker.dart';
-import 'models.dart';
-import 'permission_manager.dart';
+import 'ui/limited_access_picker.dart';
+import 'core/models.dart';
+import 'platform/permission_manager.dart';
 
 /// High-level orchestrator for adaptive media picking across platforms.
 ///
@@ -17,6 +16,7 @@ import 'permission_manager.dart';
 /// - Detects and handles "limited access" modes with a built-in grid UI
 /// - Delegates to `image_picker` when full access is available
 /// - Applies platform caveats (e.g., camera→gallery fallback on web/desktop)
+/// - Normalizes behavior across platforms (e.g., always enforcing `maxImages` for multi-pick)
 class AdaptiveMediaPicker {
   AdaptiveMediaPicker({PermissionManager? permissionManager})
     : _permissionManager = permissionManager ?? const PermissionManager();
@@ -24,7 +24,58 @@ class AdaptiveMediaPicker {
   final PermissionManager _permissionManager;
   final ImagePicker _picker = ImagePicker();
 
-  /// Picks images or a single video depending on [options].
+  /// Picks a single image by default.
+  ///
+  /// Use `source` inside [options] to choose camera or gallery.
+  /// On web/desktop, `ImageSource.camera` falls back to gallery.
+  ///
+  /// Returns [PickResultSingle] containing either one item or `null`.
+  Future<PickResultSingle> pickImage({
+    required BuildContext context,
+    PickOptions options = const PickOptions(),
+  }) async {
+    return _pickSingle(
+      context: context,
+      options: options,
+      wantsVideo: false,
+    );
+  }
+
+  /// Picks a single video.
+  ///
+  /// Multi-pick videos are not supported by native APIs; this always returns
+  /// zero or one item.
+  ///
+  /// Returns [PickResultSingle] containing either one item or `null`.
+  Future<PickResultSingle> pickVideo({
+    required BuildContext context,
+    PickOptions options = const PickOptions(),
+  }) async {
+    return _pickSingle(
+      context: context,
+      options: options,
+      wantsVideo: true,
+    );
+  }
+
+  /// Picks multiple images from gallery when available.
+  ///
+  /// Honors [PickOptions.maxImages] across all platforms (including web and
+  /// desktop) by capping the returned images list if the platform does not
+  /// enforce the limit natively.
+  ///
+  /// Returns [PickResultMultiple].
+  Future<PickResultMultiple> pickMultiImage({
+    required BuildContext context,
+    PickOptions options = const PickOptions(),
+  }) async {
+    return _pickMultiple(
+      context: context,
+      options: options,
+    );
+  }
+
+  /// Internal single-pick implementation used by [pickImage] and [pickVideo].
   ///
   /// Flow overview:
   /// - Requests appropriate permissions based on platform and [options]
@@ -33,27 +84,11 @@ class AdaptiveMediaPicker {
   /// - If full access is available, calls `image_picker` directly
   /// - On web/desktop, camera requests fall back to gallery
   ///
-  /// Returns a [PickResult] containing selected items and final permission state.
-  ///
-  /// Example:
-  /// ```dart
-  /// final picker = AdaptiveMediaPicker();
-  /// final result = await picker.pickImage(
-  ///   context: context,
-  ///   options: const PickOptions(
-  ///     mediaType: MediaType.image,
-  ///     allowMultiple: true,
-  ///     maxImages: 5,
-  ///     source: ImageSource.gallery,
-  ///   ),
-  /// );
-  /// if (result.permissionResolution.granted) {
-  ///   // Use result.items
-  /// }
-  /// ```
-  Future<PickResult> pickImage({
+  /// Returns a [PickResultSingle] with selected media and final permission state.
+  Future<PickResultSingle> _pickSingle({
     required BuildContext context,
-    PickOptions options = const PickOptions(),
+    required PickOptions options,
+    required bool wantsVideo,
   }) async {
     // On web and desktop platforms, camera capture is not supported.
     // If the caller requests camera, transparently fall back to gallery.
@@ -68,27 +103,10 @@ class AdaptiveMediaPicker {
         : options.source;
     // Web: use image_picker for web directly and avoid any Platform checks.
     if (kIsWeb) {
-      final bool wantsVideo = options.mediaType == MediaType.video;
       if (wantsVideo) {
         final XFile? video = await _picker.pickVideo(source: effectiveSource);
-        final items = video == null
-            ? <PickedMedia>[]
-            : [PickedMedia(path: video.path, mimeType: null)];
-        return PickResult(
-          items: items,
-          permissionResolution: PermissionResolution.grantedFull(),
-        );
-      }
-      if (options.allowMultiple && effectiveSource == ImageSource.gallery) {
-        final images = await _picker.pickMultiImage(
-          imageQuality: options.imageQuality,
-          limit: options.maxImages,
-        );
-        final items = images
-            .map((x) => PickedMedia(path: x.path, mimeType: null))
-            .toList();
-        return PickResult(
-          items: items,
+        return PickResultSingle(
+          item: video == null ? null : PickedMedia(path: video.path, mimeType: null),
           permissionResolution: PermissionResolution.grantedFull(),
         );
       }
@@ -98,48 +116,48 @@ class AdaptiveMediaPicker {
         maxWidth: options.maxWidth?.toDouble(),
         maxHeight: options.maxHeight?.toDouble(),
       );
-      final items = image == null
-          ? <PickedMedia>[]
-          : [PickedMedia(path: image.path, mimeType: null)];
-      return PickResult(
-        items: items,
+      return PickResultSingle(
+        item: image == null ? null : PickedMedia(path: image.path, mimeType: null),
         permissionResolution: PermissionResolution.grantedFull(),
       );
     }
 
-    final bool wantsVideo = options.mediaType == MediaType.video;
     final PermissionResolution permission = await _permissionManager
         .ensureMediaPermission(
           source: effectiveSource,
-          mediaType: options.mediaType,
+          mediaType: wantsVideo ? MediaType.video : MediaType.image,
         );
 
     if (!permission.granted) {
       if (permission.permanentlyDenied && options.showOpenSettingsDialog) {
         if (!context.mounted) {
-          return PickResult(items: const [], permissionResolution: permission);
+          return PickResultSingle(item: null, permissionResolution: permission);
         }
-        final bool open = await _showOpenSettingsDialog(context, options);
+        final bool open = await _showOpenSettingsDialog(
+          context,
+          options,
+          wantsVideo: wantsVideo,
+        );
         if (open) {
           await openAppSettings();
         }
       }
-      return PickResult(items: const [], permissionResolution: permission);
+      return PickResultSingle(item: null, permissionResolution: permission);
     }
 
     // If OS reported limited, go through limited flow.
     if (permission.limited) {
       if (!context.mounted) {
-        return PickResult(items: const [], permissionResolution: permission);
+        return PickResultSingle(item: null, permissionResolution: permission);
       }
       final List<AssetEntity>? selected = await LimitedAccessPicker.show(
         context: context,
-        allowMultiple: options.allowMultiple,
+        allowMultiple: false,
         maxImages: options.maxImages,
         mediaType: wantsVideo ? MediaType.video : MediaType.image,
       );
       if (selected == null || selected.isEmpty) {
-        return PickResult(items: const [], permissionResolution: permission);
+        return PickResultSingle(item: null, permissionResolution: permission);
       }
       final items = await Future.wait(
         selected.map((e) async {
@@ -154,81 +172,20 @@ class AdaptiveMediaPicker {
                 );
         }),
       );
-      return PickResult(
-        items: items.whereType<PickedMedia>().toList(),
-        permissionResolution: permission,
-      );
+      final List<PickedMedia> picked = items.whereType<PickedMedia>().toList();
+      return PickResultSingle(item: picked.isEmpty ? null : picked.first, permissionResolution: permission);
     }
 
-    // Android 13+ edge case: user selected limited for images but not videos (or vice versa).
-    // Even if permission looks "full", if the requested media type list is empty, force limited UI.
-    if (!kIsWeb &&
-        defaultTargetPlatform == TargetPlatform.android &&
-        effectiveSource == ImageSource.gallery) {
-      final sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
-      if (sdkInt >= 33) {
-        final RequestType type = wantsVideo
-            ? RequestType.video
-            : RequestType.image;
-        final List<AssetPathEntity> albums =
-            await PhotoManager.getAssetPathList(onlyAll: true, type: type);
-        final bool hasAny = albums.isNotEmpty
-            ? (await albums.first.getAssetListRange(
-                start: 0,
-                end: 1,
-              )).isNotEmpty
-            : false;
-        if (!hasAny) {
-          if (!context.mounted) {
-            return PickResult(
-              items: const [],
-              permissionResolution: PermissionResolution.grantedLimited(),
-            );
-          }
-          final List<AssetEntity>? selected = await LimitedAccessPicker.show(
-            context: context,
-            allowMultiple: options.allowMultiple,
-            maxImages: options.maxImages,
-            mediaType: wantsVideo ? MediaType.video : MediaType.image,
-          );
-          if (selected == null || selected.isEmpty) {
-            return PickResult(
-              items: const [],
-              permissionResolution: PermissionResolution.grantedLimited(),
-            );
-          }
-          final items = await Future.wait(
-            selected.map((e) async {
-              final file = await e.file;
-              return file == null
-                  ? null
-                  : PickedMedia(
-                      path: file.path,
-                      mimeType: e.mimeType,
-                      width: e.width,
-                      height: e.height,
-                    );
-            }),
-          );
-          return PickResult(
-            items: items.whereType<PickedMedia>().toList(),
-            permissionResolution: PermissionResolution.grantedLimited(),
-          );
-        }
-      }
-    }
-
-    // Full access flows
     if (wantsVideo) {
       if (effectiveSource == ImageSource.camera) {
         final XFile? video = await _picker.pickVideo(
           source: ImageSource.camera,
         );
         if (video == null) {
-          return PickResult(items: const [], permissionResolution: permission);
+          return PickResultSingle(item: null, permissionResolution: permission);
         }
-        return PickResult(
-          items: [PickedMedia(path: video.path, mimeType: null)],
+        return PickResultSingle(
+          item: PickedMedia(path: video.path, mimeType: null),
           permissionResolution: permission,
         );
       } else {
@@ -236,56 +193,10 @@ class AdaptiveMediaPicker {
           source: ImageSource.gallery,
         );
         if (video == null) {
-          return PickResult(items: const [], permissionResolution: permission);
+          return PickResultSingle(item: null, permissionResolution: permission);
         }
-        return PickResult(
-          items: [PickedMedia(path: video.path, mimeType: null)],
-          permissionResolution: permission,
-        );
-      }
-    }
-
-    if (options.allowMultiple && effectiveSource == ImageSource.gallery) {
-      try {
-        final images = await _picker.pickMultiImage(
-          imageQuality: options.imageQuality,
-          limit: options.maxImages,
-        );
-        List<PickedMedia> items = images
-            .map((x) => PickedMedia(path: x.path, mimeType: null))
-            .toList();
-        if (options.maxImages != null && items.length > options.maxImages!) {
-          items = items.take(options.maxImages!).toList();
-        }
-        return PickResult(items: items, permissionResolution: permission);
-      } on Exception {
-        if (!context.mounted) {
-          return PickResult(items: const [], permissionResolution: permission);
-        }
-        final List<AssetEntity>? selected = await LimitedAccessPicker.show(
-          context: context,
-          allowMultiple: true,
-          maxImages: options.maxImages,
-          mediaType: wantsVideo ? MediaType.video : MediaType.image,
-        );
-        if (selected == null || selected.isEmpty) {
-          return PickResult(items: const [], permissionResolution: permission);
-        }
-        final items = await Future.wait(
-          selected.map((e) async {
-            final file = await e.file;
-            return file == null
-                ? null
-                : PickedMedia(
-                    path: file.path,
-                    mimeType: e.mimeType,
-                    width: e.width,
-                    height: e.height,
-                  );
-          }),
-        );
-        return PickResult(
-          items: items.whereType<PickedMedia>().toList(),
+        return PickResultSingle(
+          item: PickedMedia(path: video.path, mimeType: null),
           permissionResolution: permission,
         );
       }
@@ -300,19 +211,173 @@ class AdaptiveMediaPicker {
       maxHeight: options.maxHeight?.toDouble(),
     );
     if (image == null) {
-      return PickResult(items: const [], permissionResolution: permission);
+      return PickResultSingle(item: null, permissionResolution: permission);
     }
-    return PickResult(
-      items: [PickedMedia(path: image.path, mimeType: null)],
+    return PickResultSingle(
+      item: PickedMedia(path: image.path, mimeType: null),
       permissionResolution: permission,
     );
   }
 
+  /// Internal multi-image implementation used by [pickMultiImage].
+  ///
+  /// Always returns [PickResultMultiple] and enforces [PickOptions.maxImages]
+  /// across platforms.
+  Future<PickResultMultiple> _pickMultiple({
+    required BuildContext context,
+    required PickOptions options,
+  }) async {
+    final bool isDesktop =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.macOS ||
+            defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.linux);
+    final ImageSource effectiveSource =
+        (kIsWeb || isDesktop) && options.source == ImageSource.camera
+        ? ImageSource.gallery
+        : options.source;
+
+    if (kIsWeb) {
+      if (effectiveSource == ImageSource.gallery) {
+        final images = await _picker.pickMultiImage(
+          imageQuality: options.imageQuality,
+          limit: options.maxImages,
+        );
+        List<PickedMedia> items = images
+            .map((x) => PickedMedia(path: x.path, mimeType: null))
+            .toList();
+        if (options.maxImages != null && items.length > options.maxImages!) {
+          items = items.take(options.maxImages!).toList();
+        }
+        return PickResultMultiple(
+          items: items,
+          permissionResolution: PermissionResolution.grantedFull(),
+        );
+      }
+      // Fallback to single image selection path for camera on web/desktop
+      final single = await _picker.pickImage(
+        source: effectiveSource,
+        imageQuality: options.imageQuality,
+        maxWidth: options.maxWidth?.toDouble(),
+        maxHeight: options.maxHeight?.toDouble(),
+      );
+      final items = single == null ? <PickedMedia>[] : [PickedMedia(path: single.path, mimeType: null)];
+      return PickResultMultiple(items: items, permissionResolution: PermissionResolution.grantedFull());
+    }
+
+    final PermissionResolution permission = await _permissionManager
+        .ensureMediaPermission(source: effectiveSource, mediaType: MediaType.image);
+    if (!permission.granted) {
+      if (permission.permanentlyDenied && options.showOpenSettingsDialog) {
+        if (!context.mounted) {
+          return PickResultMultiple(items: const [], permissionResolution: permission);
+        }
+        final bool open = await _showOpenSettingsDialog(
+          context,
+          options,
+          wantsVideo: false,
+        );
+        if (open) await openAppSettings();
+      }
+      return PickResultMultiple(items: const [], permissionResolution: permission);
+    }
+
+    if (permission.limited) {
+      if (!context.mounted) {
+        return PickResultMultiple(items: const [], permissionResolution: permission);
+      }
+      final List<AssetEntity>? selected = await LimitedAccessPicker.show(
+        context: context,
+        allowMultiple: true,
+        maxImages: options.maxImages,
+        mediaType: MediaType.image,
+      );
+      if (selected == null || selected.isEmpty) {
+        return PickResultMultiple(items: const [], permissionResolution: permission);
+      }
+      final items = await Future.wait(
+        selected.map((e) async {
+          final file = await e.file;
+          return file == null
+              ? null
+              : PickedMedia(
+                  path: file.path,
+                  mimeType: e.mimeType,
+                  width: e.width,
+                  height: e.height,
+                );
+        }),
+      );
+      List<PickedMedia> picked = items.whereType<PickedMedia>().toList();
+      if (options.maxImages != null && picked.length > options.maxImages!) {
+        picked = picked.take(options.maxImages!).toList();
+      }
+      return PickResultMultiple(items: picked, permissionResolution: permission);
+    }
+
+    if (effectiveSource == ImageSource.gallery) {
+      try {
+        final images = await _picker.pickMultiImage(
+          imageQuality: options.imageQuality,
+          limit: options.maxImages,
+        );
+        List<PickedMedia> items = images
+            .map((x) => PickedMedia(path: x.path, mimeType: null))
+            .toList();
+        if (options.maxImages != null && items.length > options.maxImages!) {
+          items = items.take(options.maxImages!).toList();
+        }
+        return PickResultMultiple(items: items, permissionResolution: permission);
+      } on Exception {
+        if (!context.mounted) {
+          return PickResultMultiple(items: const [], permissionResolution: permission);
+        }
+        final List<AssetEntity>? selected = await LimitedAccessPicker.show(
+          context: context,
+          allowMultiple: true,
+          maxImages: options.maxImages,
+          mediaType: MediaType.image,
+        );
+        if (selected == null || selected.isEmpty) {
+          return PickResultMultiple(items: const [], permissionResolution: permission);
+        }
+        final items = await Future.wait(
+          selected.map((e) async {
+            final file = await e.file;
+            return file == null
+                ? null
+                : PickedMedia(
+                    path: file.path,
+                    mimeType: e.mimeType,
+                    width: e.width,
+                    height: e.height,
+                  );
+          }),
+        );
+        List<PickedMedia> picked = items.whereType<PickedMedia>().toList();
+        if (options.maxImages != null && picked.length > options.maxImages!) {
+          picked = picked.take(options.maxImages!).toList();
+        }
+        return PickResultMultiple(items: picked, permissionResolution: permission);
+      }
+    }
+
+    // Fallback to single image selection for camera
+    final XFile? image = await _picker.pickImage(
+      source: effectiveSource,
+      imageQuality: options.imageQuality,
+      maxWidth: options.maxWidth?.toDouble(),
+      maxHeight: options.maxHeight?.toDouble(),
+    );
+    final items = image == null ? <PickedMedia>[] : [PickedMedia(path: image.path, mimeType: null)];
+    return PickResultMultiple(items: items, permissionResolution: permission);
+  }
+
   Future<bool> _showOpenSettingsDialog(
     BuildContext context,
-    PickOptions options,
-  ) async {
-    final bool wantsVideo = options.mediaType == MediaType.video;
+    PickOptions options, {
+    required bool wantsVideo,
+  }) async {
     final bool isCamera = options.source == ImageSource.camera;
 
     final String defaultTitle = 'Permission required';
