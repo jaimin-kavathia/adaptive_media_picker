@@ -53,7 +53,8 @@ class PermissionManager {
       if (mediaType == MediaType.video) {
         mic = await Permission.microphone.request();
       }
-      final permanentlyDenied = cam.isPermanentlyDenied || (mic?.isPermanentlyDenied ?? false);
+      final permanentlyDenied =
+          cam.isPermanentlyDenied || (mic?.isPermanentlyDenied ?? false);
       if (cam.isGranted && (mic == null || mic.isGranted)) {
         return PermissionResolution.grantedFull();
       }
@@ -73,36 +74,54 @@ class PermissionManager {
         if (mediaType == MediaType.video) {
           videosStatus = await Permission.videos.request();
         }
-        final bool permanentlyDenied = photosStatus.isPermanentlyDenied || (videosStatus?.isPermanentlyDenied ?? false);
+        final bool permanentlyDenied =
+            photosStatus.isPermanentlyDenied ||
+            (videosStatus?.isPermanentlyDenied ?? false);
         if (permanentlyDenied) {
           return PermissionResolution.denied(permanentlyDenied: true);
         }
 
         // Get albums (only images)
-        final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
-          onlyAll: true,
-          type: RequestType.image,
-        );
+        final List<AssetPathEntity> albums =
+            await PhotoManager.getAssetPathList(
+              onlyAll: true,
+              type: RequestType.image,
+            );
 
         if (albums.isNotEmpty) {
-          final List<AssetEntity> assets = await albums.first.getAssetListRange(start: 0, end: 500);
+          final List<AssetEntity> assets = await albums.first.getAssetListRange(
+            start: 0,
+            end: 500,
+          );
 
-          final validImages = assets
-              .where((asset) => asset.type == AssetType.image && isValidImageExtension(asset.title ?? ''))
-              .toList();
+          final validImages =
+              assets
+                  .where(
+                    (asset) =>
+                        asset.type == AssetType.image &&
+                        isValidImageExtension(asset.title ?? ''),
+                  )
+                  .toList();
 
-          final validVideos = assets
-              .where((asset) => asset.type == AssetType.image && isValidImageExtension(asset.title ?? ''))
-              .toList();
+          final validVideos =
+              assets
+                  .where(
+                    (asset) =>
+                        asset.type == AssetType.image &&
+                        isValidImageExtension(asset.title ?? ''),
+                  )
+                  .toList();
 
-        // If either permission is limited, treat as limited
+          // If either permission is limited, treat as limited
           final bool isLimited =
-              validImages.isNotEmpty || (mediaType == MediaType.video ? validVideos.isNotEmpty : false);
+              validImages.isNotEmpty ||
+              (mediaType == MediaType.video ? validVideos.isNotEmpty : false);
           if (isLimited) return PermissionResolution.grantedLimited();
         }
 
         // Otherwise, granted (full)
-        if (photosStatus.isGranted && (videosStatus == null || videosStatus.isGranted)) {
+        if (photosStatus.isGranted &&
+            (videosStatus == null || videosStatus.isGranted)) {
           return PermissionResolution.grantedFull();
         }
 
@@ -127,7 +146,9 @@ class PermissionManager {
         return PermissionResolution.denied();
       }
       final bool isLimited = await Permission.photos.isLimited;
-      return isLimited ? PermissionResolution.grantedLimited() : PermissionResolution.grantedFull();
+      return isLimited
+          ? PermissionResolution.grantedLimited()
+          : PermissionResolution.grantedFull();
     }
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
@@ -147,15 +168,33 @@ class PermissionManager {
 
   bool isValidImageExtension(String path) {
     final ext = path.split('.').last.toLowerCase();
-    const validExtensions = ['jpg', 'jpeg', 'png', 'bmp', 'webp', 'heic', 'heif', 'tiff', 'tif'];
+    const validExtensions = [
+      'jpg',
+      'jpeg',
+      'png',
+      'bmp',
+      'webp',
+      'heic',
+      'heif',
+      'tiff',
+      'tif',
+    ];
     return validExtensions.contains(ext);
   }
 
   bool isValidVideoExtension(String path) {
     final ext = path.split('.').last.toLowerCase();
-    const validExtensions = ['mp4', 'mov', 'm4v', 'avi', 'wmv', 'flv', 'mkv', 'webm', '3gp'];
+    const validExtensions = [
+      'mp4',
+      'mov',
+      'm4v',
+      'avi',
+      'wmv',
+      'flv',
+      'mkv',
+      'webm',
+      '3gp',
+    ];
     return validExtensions.contains(ext);
   }
 }
-
-

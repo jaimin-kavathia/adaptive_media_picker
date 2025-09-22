@@ -108,7 +108,10 @@ class PickedMedia {
 class PickResultSingle {
   final PickedMedia? item;
   final PermissionResolution permissionResolution;
-  const PickResultSingle({required this.item, required this.permissionResolution});
+  const PickResultSingle({
+    required this.item,
+    required this.permissionResolution,
+  });
 
   /// True when no item was selected.
   bool get isEmpty => item == null;
@@ -118,7 +121,10 @@ class PickResultSingle {
 class PickResultMultiple {
   final List<PickedMedia> items;
   final PermissionResolution permissionResolution;
-  const PickResultMultiple({required this.items, required this.permissionResolution});
+  const PickResultMultiple({
+    required this.items,
+    required this.permissionResolution,
+  });
 
   /// True when no items were selected.
   bool get isEmpty => items.isEmpty;
@@ -161,5 +167,3 @@ class PermissionResolution {
     permanentlyDenied: false,
   );
 }
-
-
