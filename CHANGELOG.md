@@ -1,3 +1,17 @@
+## 0.0.4 — 2025-09-23
+
+Analyzer and formatting cleanups; no API changes:
+
+- Lints
+  - Resolved "Dangling library doc comment" by adjusting comments in `lib/adaptive_media_picker.dart`
+  - Ensured analyzer passes with no issues on the library entrypoint
+- Formatting
+  - Ran `dart format` across the repository (lib and example) for pub.dev checks
+- Tests
+  - Verified package and example tests pass under FVM
+- Public API
+  - No functional or breaking changes
+
 ## 0.0.3 — 2025-09-23
 
 Docs and README polish; tests and formatting:
