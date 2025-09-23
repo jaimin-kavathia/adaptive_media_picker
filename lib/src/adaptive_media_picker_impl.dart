@@ -5,11 +5,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'ui/limited_access_picker.dart';
-import 'core/models.dart';
-import 'platform/permission_manager.dart';
+import 'stub/limited_access_picker_stub.dart'
+    if (dart.library.io) 'ui/limited_access_picker.dart';
+import 'stub/permission_manager_stub.dart'
+    if (dart.library.io) 'platform/permission_manager.dart';
 
-/// High-level orchestrator for adaptive media picking across platforms.
+import 'core/models.dart';
+
+/// Adaptive, permission-aware media picker.
 ///
 /// Responsibilities:
 /// - Requests and evaluates runtime permissions per platform and API level
@@ -18,18 +21,21 @@ import 'platform/permission_manager.dart';
 /// - Applies platform caveats (e.g., camera→gallery fallback on web/desktop)
 /// - Normalizes behavior across platforms (e.g., always enforcing `maxImages` for multi-pick)
 class AdaptiveMediaPicker {
+  /// Creates an [AdaptiveMediaPicker].
+  ///
+  /// You may pass a custom [permissionManager] for testing or advanced use
+  /// cases. By default, a platform-aware [PermissionManager] is created.
   AdaptiveMediaPicker({PermissionManager? permissionManager})
-    : _permissionManager = permissionManager ?? const PermissionManager();
+    : _permissionManager = permissionManager ?? PermissionManager();
 
   final PermissionManager _permissionManager;
   final ImagePicker _picker = ImagePicker();
 
-  /// Picks a single image by default.
+  /// Pick a single image.
   ///
-  /// Use `source` inside [options] to choose camera or gallery.
-  /// On web/desktop, `ImageSource.camera` falls back to gallery.
-  ///
-  /// Returns [PickResultSingle] containing either one item or `null`.
+  /// - Honors [PickOptions.source] (camera/gallery). On web/desktop, camera
+  ///   transparently falls back to gallery.
+  /// - Returns a [PickResultSingle] with either one item or `null`.
   Future<PickResultSingle> pickImage({
     required BuildContext context,
     PickOptions options = const PickOptions(),
@@ -37,12 +43,10 @@ class AdaptiveMediaPicker {
     return _pickSingle(context: context, options: options, wantsVideo: false);
   }
 
-  /// Picks a single video.
+  /// Pick a single video.
   ///
-  /// Multi-pick videos are not supported by native APIs; this always returns
-  /// zero or one item.
-  ///
-  /// Returns [PickResultSingle] containing either one item or `null`.
+  /// Multi-pick videos are not supported by native APIs.
+  /// Returns a [PickResultSingle].
   Future<PickResultSingle> pickVideo({
     required BuildContext context,
     PickOptions options = const PickOptions(),
@@ -50,13 +54,10 @@ class AdaptiveMediaPicker {
     return _pickSingle(context: context, options: options, wantsVideo: true);
   }
 
-  /// Picks multiple images from gallery when available.
+  /// Pick multiple images.
   ///
-  /// Honors [PickOptions.maxImages] across all platforms (including web and
-  /// desktop) by capping the returned images list if the platform does not
-  /// enforce the limit natively.
-  ///
-  /// Returns [PickResultMultiple].
+  /// Enforces [PickOptions.maxImages] across platforms and returns a
+  /// [PickResultMultiple].
   Future<PickResultMultiple> pickMultiImage({
     required BuildContext context,
     PickOptions options = const PickOptions(),

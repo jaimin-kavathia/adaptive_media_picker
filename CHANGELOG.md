@@ -1,3 +1,18 @@
+## 0.0.3 — 2025-09-23
+
+Docs and README polish; tests and formatting:
+
+- Docs
+  - Added dartdoc across public API (picker, models, limited-access UI)
+  - Removed duplicated/ambiguous comments for clearer generated docs
+- Public API
+  - Cleaned exports in `adaptive_media_picker.dart` (no breaking changes)
+- Tests & formatting
+  - Updated example test to use the public entrypoint
+  - Ran `dart format` on lib to satisfy pub.dev checks
+- Internals
+  - Minor refactors and comments only; no runtime behavior changes
+
 ## 0.0.2 — 2025-09-19
 
 Refactor, clearer API, and docs/readiness improvements:

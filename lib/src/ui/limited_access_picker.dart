@@ -5,16 +5,27 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../core/models.dart';
 
+/// Internal UI for handling limited access to Photos/Videos on iOS/Android/macOS.
+///
+/// This file should not be used directly. Use [AdaptiveMediaPicker] APIs.
+
 /// Simple, package-provided limited access picker UI.
 ///
 /// Shows a modal bottom sheet with a grid of assets when the OS grants
 /// limited access to Photos. Apps can provide their own UI by not using
 /// this and handling `photo_manager` assets directly.
+/// Bottom-sheet grid used when Photos access is limited.
 class LimitedAccessPicker extends StatefulWidget {
+  /// Whether the sheet should allow multiple selection.
   final bool allowMultiple;
+
+  /// Maximum number of images to allow when [allowMultiple] is true.
   final int? maxImages;
+
+  /// The media type displayed in the sheet.
   final MediaType mediaType;
 
+  /// Creates a [LimitedAccessPicker]. Prefer using [LimitedAccessPicker.show].
   const LimitedAccessPicker({
     super.key,
     this.allowMultiple = false,
@@ -24,6 +35,8 @@ class LimitedAccessPicker extends StatefulWidget {
 
   /// Presents the limited-access picker as a modal bottom sheet and returns
   /// selected assets, or `null` if dismissed.
+  /// Shows the limited-access bottom sheet and returns selected assets, or
+  /// `null` if dismissed.
   static Future<List<AssetEntity>?> show({
     required BuildContext context,
     bool allowMultiple = false,

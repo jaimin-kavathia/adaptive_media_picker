@@ -71,7 +71,6 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
         _items = result.item == null ? const [] : [result.item!];
       }
       _status = 'Picked ${_items.length} item(s).';
-
     });
   }
 
@@ -100,7 +99,6 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
         _items = result.items;
       }
       _status = 'Picked ${_items.length} item(s).';
-
     });
   }
 
@@ -127,7 +125,6 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
         _items = result.item == null ? const [] : [result.item!];
       }
       _status = 'Picked ${_items.length} item(s).';
-
     });
   }
 
@@ -147,7 +144,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               runSpacing: 12,
               children: [
                 ElevatedButton(
-                  onPressed: () => _runPickSingleImage(source: ImageSource.gallery),
+                  onPressed: () =>
+                      _runPickSingleImage(source: ImageSource.gallery),
                   child: const Text('Pick image (gallery)'),
                 ),
                 ElevatedButton(

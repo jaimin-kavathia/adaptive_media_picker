@@ -1,69 +1,48 @@
 import 'package:image_picker/image_picker.dart';
 
-/// Kind of media to pick.
+/// Core models used by AdaptiveMediaPicker.
 ///
-/// - [image]: Pick still images (JPEG/PNG/HEIC, etc.)
-/// - [video]: Pick a single video file
-/// Target media type to pick.
-///
-/// - **image**: still images (e.g., JPG/PNG/HEIC)
-/// - **video**: single video file
+/// Includes pick options, media types, picked items, and permission resolution.
+
+/// Media type requested for a pick operation.
 enum MediaType { image, video }
 
-/// Configuration options for a pick operation (method-specific defaults apply).
+/// Options that configure a pick operation (method-specific defaults apply).
 ///
-/// - [maxImages] limits the number of images in multi-pick. Applies to images only.
-/// - [imageQuality], [maxWidth], [maxHeight] are forwarded to `image_picker` when
-///   picking images with full access.
-/// - [source] chooses camera or gallery. On platforms where camera capture is
-///   not supported (web and desktop), `ImageSource.camera` is automatically
-///   treated as `ImageSource.gallery`.
-/// - The "Open Settings" dialog can be configured for permanently denied cases
-///   using the [showOpenSettingsDialog] flags and labels.
-///
-/// Note:
-/// - Use `pickImage` for a single image.
-/// - Use `pickVideo` for a single video (multi-select is not supported by native APIs).
-/// - Use `pickMultiImage` for multiple images; [maxImages] constrains the count.
-///   The limit is enforced cross-platform even if the underlying platform allows
-///   selecting more.
-/// Options that configure a pick operation.
+/// - [maxImages] limits multi-image picks (images only)
+/// - [imageQuality], [maxWidth], [maxHeight] are forwarded to `image_picker`
+/// - [source] chooses camera or gallery (camera falls back to gallery on web/desktop)
+/// - Settings dialog text can be customized via the provided fields
 class PickOptions {
-  /// Max number of images to return when using `pickMultiImage`.
-  ///
-  /// This applies to images only and is ignored by `pickImage`/`pickVideo`.
+  /// Maximum number of images to return for multi-image picks.
+  /// Ignored by `pickImage`/`pickVideo`.
   final int? maxImages;
 
-  /// JPEG compression quality forwarded to `image_picker` (0-100).
+  /// JPEG compression quality (0-100) used for images when supported.
   final int? imageQuality;
 
-  /// Maximum width forwarded to `image_picker` for image scenarios.
+  /// Resize width for images when supported.
   final int? maxWidth;
 
-  /// Maximum height forwarded to `image_picker` for image scenarios.
+  /// Resize height for images when supported.
   final int? maxHeight;
 
-  /// Camera or gallery source.
-  ///
-  /// Note: On web and desktop (Windows, macOS, Linux), camera capture is not
-  /// available in this package. If `ImageSource.camera` is specified, the
-  /// picker will transparently fall back to `ImageSource.gallery`.
+  /// Camera or gallery source. On web/desktop, camera falls back to gallery.
   final ImageSource source;
 
-  /// When permission is permanently denied, show a dialog guiding users
-  /// to open OS settings.
+  /// Whether to show an "Open Settings" dialog when permission is permanently denied.
   final bool showOpenSettingsDialog;
 
-  /// Dialog title for "Open Settings" prompt.
+  /// Title for the settings dialog.
   final String? settingsDialogTitle;
 
-  /// Dialog message for "Open Settings" prompt.
+  /// Message for the settings dialog.
   final String? settingsDialogMessage;
 
-  /// Primary action label for "Open Settings".
+  /// Primary button label for the settings dialog.
   final String? settingsButtonLabel;
 
-  /// Cancel action label for "Open Settings".
+  /// Cancel button label for the settings dialog.
   final String? cancelButtonLabel;
 
   /// Create a set of options for a pick operation.
@@ -81,8 +60,7 @@ class PickOptions {
   });
 }
 
-/// A single piece of picked media (image or video).
-/// A single piece of picked media (image or video).
+/// A single picked media item (image or video).
 class PickedMedia {
   /// Local file path (temporary or persistent) to the media.
   final String path;
@@ -104,7 +82,7 @@ class PickedMedia {
   });
 }
 
-/// Result for single-pick flows (image or video). [item] is null if nothing selected.
+/// Result for single-pick flows (image or video). [item] is null if none.
 class PickResultSingle {
   final PickedMedia? item;
   final PermissionResolution permissionResolution;
@@ -117,7 +95,7 @@ class PickResultSingle {
   bool get isEmpty => item == null;
 }
 
-/// Result for multi-image flows. [items] may be empty if nothing selected.
+/// Result for multi-image flows. [items] may be empty.
 class PickResultMultiple {
   final List<PickedMedia> items;
   final PermissionResolution permissionResolution;
@@ -130,8 +108,7 @@ class PickResultMultiple {
   bool get isEmpty => items.isEmpty;
 }
 
-/// Describes the final permission state after a prompt/handling.
-/// Permission outcome after attempting to acquire access.
+/// Final permission state after a prompt/handling.
 class PermissionResolution {
   /// True if access is granted in any form.
   final bool granted;
