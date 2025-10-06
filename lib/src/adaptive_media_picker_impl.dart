@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:ui' as ui;
 
 // Conditional imports for image cropping
 import 'stub/image_cropper_stub.dart'
@@ -31,7 +32,7 @@ class AdaptiveMediaPicker {
   /// You may pass a custom [permissionManager] for testing or advanced use
   /// cases. By default, a platform-aware [PermissionManager] is created.
   AdaptiveMediaPicker({PermissionManager? permissionManager})
-    : _permissionManager = permissionManager ?? PermissionManager();
+      : _permissionManager = permissionManager ?? PermissionManager();
 
   final PermissionManager _permissionManager;
   final ImagePicker _picker = ImagePicker();
@@ -100,8 +101,7 @@ class AdaptiveMediaPicker {
   }) async {
     // On web and desktop platforms, camera capture is not supported.
     // If the caller requests camera, transparently fall back to gallery.
-    final bool isDesktop =
-        !kIsWeb &&
+    final bool isDesktop = !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.macOS ||
             defaultTargetPlatform == TargetPlatform.windows ||
             defaultTargetPlatform == TargetPlatform.linux);
@@ -114,11 +114,11 @@ class AdaptiveMediaPicker {
       if (wantsVideo) {
         final XFile? video = await _picker.pickVideo(source: effectiveSource);
         return PickResultSingle(
-          item:
-              video == null
-                  ? null
-                  : PickedMedia(path: video.path, mimeType: null),
+          item: video == null
+              ? null
+              : PickedMedia(path: video.path, mimeType: null),
           permissionResolution: PermissionResolution.grantedFull(),
+          error: video == null ? PickError.canceled : null,
         );
       }
       final XFile? image = await _picker.pickImage(
@@ -131,6 +131,7 @@ class AdaptiveMediaPicker {
         return PickResultSingle(
           item: null,
           permissionResolution: PermissionResolution.grantedFull(),
+          error: PickError.canceled,
         );
       }
       if (options.wantToCrop) {
@@ -140,6 +141,18 @@ class AdaptiveMediaPicker {
             permissionResolution: PermissionResolution.grantedFull(),
           );
         }
+        final Size? originalSize = await _computeImageSizeFromXFile(image);
+        if (!context.mounted) {
+          return PickResultSingle(
+            item: PickedMedia(path: image.path, mimeType: null),
+            permissionResolution: PermissionResolution.grantedFull(),
+            metadata: PickMetadata(
+              cropApplied: false,
+              originalSize: originalSize,
+              finalSize: originalSize,
+            ),
+          );
+        }
         final String? croppedPath = await PlatformImageCropper.cropImage(
           sourcePath: image.path,
           context: context,
@@ -147,22 +160,37 @@ class AdaptiveMediaPicker {
           compressQuality: 100,
         );
         final String path = croppedPath ?? image.path;
+        final Size? finalSize = croppedPath == null
+            ? originalSize
+            : await _computeImageSizeFromPath(path);
         return PickResultSingle(
           item: PickedMedia(path: path, mimeType: null),
           permissionResolution: PermissionResolution.grantedFull(),
+          metadata: PickMetadata(
+            cropApplied: croppedPath != null,
+            originalSize: originalSize,
+            finalSize: finalSize,
+          ),
+          error: croppedPath == null ? PickError.cropCanceled : null,
         );
       }
+      final Size? size = await _computeImageSizeFromXFile(image);
       return PickResultSingle(
         item: PickedMedia(path: image.path, mimeType: null),
         permissionResolution: PermissionResolution.grantedFull(),
+        metadata: PickMetadata(
+          cropApplied: false,
+          originalSize: size,
+          finalSize: size,
+        ),
       );
     }
 
-    final PermissionResolution permission = await _permissionManager
-        .ensureMediaPermission(
-          source: effectiveSource,
-          mediaType: wantsVideo ? MediaType.video : MediaType.image,
-        );
+    final PermissionResolution permission =
+        await _permissionManager.ensureMediaPermission(
+      source: effectiveSource,
+      mediaType: wantsVideo ? MediaType.video : MediaType.image,
+    );
 
     if (!permission.granted) {
       if (permission.permanentlyDenied && options.showOpenSettingsDialog) {
@@ -178,7 +206,11 @@ class AdaptiveMediaPicker {
           await openAppSettings();
         }
       }
-      return PickResultSingle(item: null, permissionResolution: permission);
+      return PickResultSingle(
+        item: null,
+        permissionResolution: permission,
+        error: PickError.unknown,
+      );
     }
 
     // If OS reported limited, go through limited flow.
@@ -193,8 +225,19 @@ class AdaptiveMediaPicker {
         mediaType: wantsVideo ? MediaType.video : MediaType.image,
       );
       if (selected == null || selected.isEmpty) {
-        return PickResultSingle(item: null, permissionResolution: permission);
+        return PickResultSingle(
+          item: null,
+          permissionResolution: permission,
+          error: PickError.canceled,
+        );
       }
+      bool croppedApplied = false;
+      final Size? originalSizeLimited = wantsVideo
+          ? null
+          : Size(
+              selected.first.width.toDouble(),
+              selected.first.height.toDouble(),
+            );
       final items = await Future.wait(
         selected.map((e) async {
           final file = await e.file;
@@ -211,6 +254,7 @@ class AdaptiveMediaPicker {
             );
             if (croppedPath != null) {
               finalPath = croppedPath;
+              croppedApplied = true;
             }
           }
 
@@ -223,9 +267,17 @@ class AdaptiveMediaPicker {
         }),
       );
       final List<PickedMedia> picked = items.whereType<PickedMedia>().toList();
+      final Size? finalSizeLimited = (!wantsVideo && croppedApplied)
+          ? await _computeImageSizeFromPath(picked.first.path)
+          : originalSizeLimited;
       return PickResultSingle(
         item: picked.isEmpty ? null : picked.first,
         permissionResolution: permission,
+        metadata: PickMetadata(
+          cropApplied: croppedApplied,
+          originalSize: originalSizeLimited,
+          finalSize: finalSizeLimited,
+        ),
       );
     }
 
@@ -235,7 +287,11 @@ class AdaptiveMediaPicker {
           source: ImageSource.camera,
         );
         if (video == null) {
-          return PickResultSingle(item: null, permissionResolution: permission);
+          return PickResultSingle(
+            item: null,
+            permissionResolution: permission,
+            error: PickError.canceled,
+          );
         }
         return PickResultSingle(
           item: PickedMedia(path: video.path, mimeType: null),
@@ -246,7 +302,11 @@ class AdaptiveMediaPicker {
           source: ImageSource.gallery,
         );
         if (video == null) {
-          return PickResultSingle(item: null, permissionResolution: permission);
+          return PickResultSingle(
+            item: null,
+            permissionResolution: permission,
+            error: PickError.canceled,
+          );
         }
         return PickResultSingle(
           item: PickedMedia(path: video.path, mimeType: null),
@@ -264,25 +324,66 @@ class AdaptiveMediaPicker {
       maxHeight: options.maxHeight?.toDouble(),
     );
     if (image == null) {
-      return PickResultSingle(item: null, permissionResolution: permission);
+      return PickResultSingle(
+        item: null,
+        permissionResolution: permission,
+        error: PickError.canceled,
+      );
     }
     // Optionally crop for single image
     if (options.wantToCrop) {
+      final Size? originalSize = await _computeImageSizeFromXFile(image);
       final String? croppedPath = await PlatformImageCropper.cropImage(
         sourcePath: image.path,
         compressFormat: 'jpg',
         compressQuality: 100,
       );
       final String path = croppedPath ?? image.path;
+      final Size? finalSize = croppedPath == null
+          ? originalSize
+          : await _computeImageSizeFromPath(path);
       return PickResultSingle(
         item: PickedMedia(path: path, mimeType: null),
         permissionResolution: permission,
+        metadata: PickMetadata(
+          cropApplied: croppedPath != null,
+          originalSize: originalSize,
+          finalSize: finalSize,
+        ),
+        error: croppedPath == null ? null : null,
       );
     }
+    final Size? size = await _computeImageSizeFromXFile(image);
     return PickResultSingle(
       item: PickedMedia(path: image.path, mimeType: null),
       permissionResolution: permission,
+      metadata: PickMetadata(
+        cropApplied: false,
+        originalSize: size,
+        finalSize: size,
+      ),
     );
+  }
+
+  Future<Size?> _computeImageSizeFromXFile(XFile file) async {
+    try {
+      final bytes = await file.readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+      return Size(image.width.toDouble(), image.height.toDouble());
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Size?> _computeImageSizeFromPath(String path) async {
+    try {
+      final xf = XFile(path);
+      return _computeImageSizeFromXFile(xf);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Internal multi-image implementation used by [pickMultiImage].
@@ -293,8 +394,7 @@ class AdaptiveMediaPicker {
     required BuildContext context,
     required PickOptions options,
   }) async {
-    final bool isDesktop =
-        !kIsWeb &&
+    final bool isDesktop = !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.macOS ||
             defaultTargetPlatform == TargetPlatform.windows ||
             defaultTargetPlatform == TargetPlatform.linux);
@@ -309,10 +409,9 @@ class AdaptiveMediaPicker {
           imageQuality: options.imageQuality,
           limit: options.maxImages,
         );
-        List<PickedMedia> items =
-            images
-                .map((x) => PickedMedia(path: x.path, mimeType: null))
-                .toList();
+        List<PickedMedia> items = images
+            .map((x) => PickedMedia(path: x.path, mimeType: null))
+            .toList();
         if (options.maxImages != null && items.length > options.maxImages!) {
           items = items.take(options.maxImages!).toList();
         }
@@ -328,21 +427,20 @@ class AdaptiveMediaPicker {
         maxWidth: options.maxWidth?.toDouble(),
         maxHeight: options.maxHeight?.toDouble(),
       );
-      final items =
-          single == null
-              ? <PickedMedia>[]
-              : [PickedMedia(path: single.path, mimeType: null)];
+      final items = single == null
+          ? <PickedMedia>[]
+          : [PickedMedia(path: single.path, mimeType: null)];
       return PickResultMultiple(
         items: items,
         permissionResolution: PermissionResolution.grantedFull(),
       );
     }
 
-    final PermissionResolution permission = await _permissionManager
-        .ensureMediaPermission(
-          source: effectiveSource,
-          mediaType: MediaType.image,
-        );
+    final PermissionResolution permission =
+        await _permissionManager.ensureMediaPermission(
+      source: effectiveSource,
+      mediaType: MediaType.image,
+    );
     if (!permission.granted) {
       if (permission.permanentlyDenied && options.showOpenSettingsDialog) {
         if (!context.mounted) {
@@ -389,11 +487,11 @@ class AdaptiveMediaPicker {
           return file == null
               ? null
               : PickedMedia(
-                path: file.path,
-                mimeType: e.mimeType,
-                width: e.width,
-                height: e.height,
-              );
+                  path: file.path,
+                  mimeType: e.mimeType,
+                  width: e.width,
+                  height: e.height,
+                );
         }),
       );
       List<PickedMedia> picked = items.whereType<PickedMedia>().toList();
@@ -412,10 +510,9 @@ class AdaptiveMediaPicker {
           imageQuality: options.imageQuality,
           limit: options.maxImages,
         );
-        List<PickedMedia> items =
-            images
-                .map((x) => PickedMedia(path: x.path, mimeType: null))
-                .toList();
+        List<PickedMedia> items = images
+            .map((x) => PickedMedia(path: x.path, mimeType: null))
+            .toList();
         if (options.maxImages != null && items.length > options.maxImages!) {
           items = items.take(options.maxImages!).toList();
         }
@@ -448,11 +545,11 @@ class AdaptiveMediaPicker {
             return file == null
                 ? null
                 : PickedMedia(
-                  path: file.path,
-                  mimeType: e.mimeType,
-                  width: e.width,
-                  height: e.height,
-                );
+                    path: file.path,
+                    mimeType: e.mimeType,
+                    width: e.width,
+                    height: e.height,
+                  );
           }),
         );
         List<PickedMedia> picked = items.whereType<PickedMedia>().toList();
@@ -473,10 +570,9 @@ class AdaptiveMediaPicker {
       maxWidth: options.maxWidth?.toDouble(),
       maxHeight: options.maxHeight?.toDouble(),
     );
-    final items =
-        image == null
-            ? <PickedMedia>[]
-            : [PickedMedia(path: image.path, mimeType: null)];
+    final items = image == null
+        ? <PickedMedia>[]
+        : [PickedMedia(path: image.path, mimeType: null)];
     return PickResultMultiple(items: items, permissionResolution: permission);
   }
 
@@ -490,15 +586,13 @@ class AdaptiveMediaPicker {
     final String defaultTitle = 'Permission required';
     String defaultMessage;
     if (isCamera) {
-      defaultMessage =
-          wantsVideo
-              ? 'Camera and Microphone access is required to record videos. Open Settings to grant access.'
-              : 'Camera access is required to take photos. Open Settings to grant access.';
+      defaultMessage = wantsVideo
+          ? 'Camera and Microphone access is required to record videos. Open Settings to grant access.'
+          : 'Camera access is required to take photos. Open Settings to grant access.';
     } else {
-      defaultMessage =
-          wantsVideo
-              ? 'Photos and Videos access is required to pick videos. Open Settings to grant access.'
-              : 'Photos access is required to pick images. Open Settings to grant access.';
+      defaultMessage = wantsVideo
+          ? 'Photos and Videos access is required to pick videos. Open Settings to grant access.'
+          : 'Photos access is required to pick images. Open Settings to grant access.';
     }
 
     final String title = options.settingsDialogTitle ?? defaultTitle;
@@ -510,22 +604,21 @@ class AdaptiveMediaPicker {
       if (!context.mounted) return false;
       return await showCupertinoDialog<bool>(
             context: context,
-            builder:
-                (ctx) => CupertinoAlertDialog(
-                  title: Text(title),
-                  content: Text(message),
-                  actions: [
-                    CupertinoDialogAction(
-                      onPressed: () => Navigator.of(ctx).pop(false),
-                      child: Text(cancelLabel),
-                    ),
-                    CupertinoDialogAction(
-                      isDefaultAction: true,
-                      onPressed: () => Navigator.of(ctx).pop(true),
-                      child: Text(settingsLabel),
-                    ),
-                  ],
+            builder: (ctx) => CupertinoAlertDialog(
+              title: Text(title),
+              content: Text(message),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(cancelLabel),
                 ),
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(settingsLabel),
+                ),
+              ],
+            ),
           ) ??
           false;
     }
@@ -533,21 +626,20 @@ class AdaptiveMediaPicker {
     if (!context.mounted) return false;
     return await showDialog<bool>(
           context: context,
-          builder:
-              (ctx) => AlertDialog(
-                title: Text(title),
-                content: Text(message),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(false),
-                    child: Text(cancelLabel),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(true),
-                    child: Text(settingsLabel),
-                  ),
-                ],
+          builder: (ctx) => AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(cancelLabel),
               ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text(settingsLabel),
+              ),
+            ],
+          ),
         ) ??
         false;
   }

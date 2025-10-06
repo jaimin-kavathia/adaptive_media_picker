@@ -6,15 +6,14 @@ class BackendImageCropper {
   /// Crop an image on web platform.
   static Future<String?> cropImage({
     required String sourcePath,
-    required BuildContext? context,
+    required BuildContext context,
     String compressFormat = 'jpg',
     int compressQuality = 100,
   }) async {
     try {
-      final ImageCompressFormat format =
-          compressFormat == 'png'
-              ? ImageCompressFormat.png
-              : ImageCompressFormat.jpg;
+      final ImageCompressFormat format = compressFormat == 'png'
+          ? ImageCompressFormat.png
+          : ImageCompressFormat.jpg;
 
       final CroppedFile? cropped = await ImageCropper().cropImage(
         sourcePath: sourcePath,
@@ -22,7 +21,7 @@ class BackendImageCropper {
         compressQuality: compressQuality,
         uiSettings: [
           WebUiSettings(
-            context: context!,
+            context: context,
             presentStyle: WebPresentStyle.page,
             size: const CropperSize(width: 520, height: 520),
           ),

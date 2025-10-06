@@ -12,10 +12,9 @@ class BackendImageCropper {
     int compressQuality = 100,
   }) async {
     try {
-      final ImageCompressFormat format =
-          compressFormat == 'png'
-              ? ImageCompressFormat.png
-              : ImageCompressFormat.jpg;
+      final ImageCompressFormat format = compressFormat == 'png'
+          ? ImageCompressFormat.png
+          : ImageCompressFormat.jpg;
 
       final CroppedFile? cropped = await ImageCropper().cropImage(
         sourcePath: sourcePath,

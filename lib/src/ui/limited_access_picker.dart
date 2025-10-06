@@ -26,12 +26,11 @@ class LimitedAccessPicker extends StatefulWidget {
   final MediaType mediaType;
 
   /// Creates a [LimitedAccessPicker]. Prefer using [LimitedAccessPicker.show].
-  const LimitedAccessPicker({
-    super.key,
-    this.allowMultiple = false,
-    this.maxImages,
-    this.mediaType = MediaType.image,
-  });
+  const LimitedAccessPicker(
+      {super.key,
+      this.allowMultiple = false,
+      this.maxImages,
+      this.mediaType = MediaType.image});
 
   /// Presents the limited-access picker as a modal bottom sheet and returns
   /// selected assets, or `null` if dismissed.
@@ -46,22 +45,18 @@ class LimitedAccessPicker extends StatefulWidget {
     return await showModalBottomSheet<List<AssetEntity>>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(12),
-          topRight: Radius.circular(12),
-        ),
+            topLeft: Radius.circular(12), topRight: Radius.circular(12)),
       ),
-      builder:
-          (ctx) => SizedBox(
-            height: MediaQuery.of(ctx).size.height * 0.85,
-            child: LimitedAccessPicker(
-              allowMultiple: allowMultiple,
-              maxImages: maxImages,
-              mediaType: mediaType,
-            ),
-          ),
+      builder: (ctx) => SizedBox(
+        height: MediaQuery.of(ctx).size.height * 0.85,
+        child: LimitedAccessPicker(
+            allowMultiple: allowMultiple,
+            maxImages: maxImages,
+            mediaType: mediaType),
+      ),
     );
   }
 
@@ -82,28 +77,19 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
   }
 
   Future<void> _loadAssets() async {
-    final RequestType requestType =
-        widget.mediaType == MediaType.video
-            ? RequestType.video
-            : RequestType.image;
-    final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
-      onlyAll: true,
-      type: requestType,
-    );
+    final RequestType requestType = widget.mediaType == MediaType.video
+        ? RequestType.video
+        : RequestType.image;
+    final List<AssetPathEntity> albums =
+        await PhotoManager.getAssetPathList(onlyAll: true, type: requestType);
     if (albums.isNotEmpty) {
-      final List<AssetEntity> assets = await albums.first.getAssetListRange(
-        start: 0,
-        end: 500,
-      );
-      final filtered =
-          assets
-              .where(
-                (a) =>
-                    widget.mediaType == MediaType.video
-                        ? a.type == AssetType.video
-                        : a.type == AssetType.image,
-              )
-              .toList();
+      final List<AssetEntity> assets =
+          await albums.first.getAssetListRange(start: 0, end: 500);
+      final filtered = assets
+          .where((a) => widget.mediaType == MediaType.video
+              ? a.type == AssetType.video
+              : a.type == AssetType.image)
+          .toList();
       if (filtered.isEmpty) {
         // No visible items under limited access. Offer to manage selection or open settings.
         // If the user chooses to manage or open settings, the bottom sheet will close by default.
@@ -125,43 +111,37 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
     final bool isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final bool isMacOS =
         !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
-    final platformMessage =
-        isIOS
-            ? 'Go to: Settings > App > Photos > Limited Access > Select ${isVideo ? 'videos' : 'images'} to share with this app.'
-            : isMacOS
+    final platformMessage = isIOS
+        ? 'Go to: Settings > App > Photos > Limited Access > Select ${isVideo ? 'videos' : 'images'} to share with this app.'
+        : isMacOS
             ? 'Go to: System Settings > Privacy & Security > Photos > Enable access for this app. Then select ${isVideo ? 'videos' : 'images'}.'
             : 'Go to: Settings > Apps > This app > Permissions > Photos and Videos > Select limited ${isVideo ? 'videos' : 'images'} for this app.';
 
     final action = await showDialog<_LimitedAction>(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text(
-              isVideo ? 'No videos available' : 'No images available',
+      builder: (ctx) => AlertDialog(
+        title: Text(isVideo ? 'No videos available' : 'No images available'),
+        content: Text(
+          (isIOS || isMacOS)
+              ? 'You are in limited access mode. $platformMessage'
+              : 'No ${isVideo ? 'videos' : 'images'} found under limited access. $platformMessage',
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(_LimitedAction.cancel),
+              child: const Text('Cancel')),
+          if (isIOS || isMacOS)
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(ctx).pop(_LimitedAction.manageLimited),
+              child: const Text('Manage Selection'),
             ),
-            content: Text(
-              (isIOS || isMacOS)
-                  ? 'You are in limited access mode. $platformMessage'
-                  : 'No ${isVideo ? 'videos' : 'images'} found under limited access. $platformMessage',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(_LimitedAction.cancel),
-                child: const Text('Cancel'),
-              ),
-              if (isIOS || isMacOS)
-                TextButton(
-                  onPressed:
-                      () => Navigator.of(ctx).pop(_LimitedAction.manageLimited),
-                  child: const Text('Manage Selection'),
-                ),
-              TextButton(
-                onPressed:
-                    () => Navigator.of(ctx).pop(_LimitedAction.openSettings),
-                child: const Text('Open Settings'),
-              ),
-            ],
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(_LimitedAction.openSettings),
+            child: const Text('Open Settings'),
           ),
+        ],
+      ),
     );
 
     if (!mounted) return;
@@ -210,47 +190,43 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.mediaType == MediaType.video
-              ? 'Select videos'
-              : 'Select images',
-        ),
+        title: Text(widget.mediaType == MediaType.video
+            ? 'Select videos'
+            : 'Select images'),
         actions: [
           if (widget.allowMultiple)
             TextButton(
-              onPressed:
-                  _selected.isEmpty
-                      ? null
-                      : () => Navigator.of(context).pop(_selected.toList()),
+              onPressed: _selected.isEmpty
+                  ? null
+                  : () => Navigator.of(context).pop(_selected.toList()),
               child: const Text('Done'),
             ),
         ],
       ),
-      body:
-          _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _assets.isEmpty
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _assets.isEmpty
               ? Center(
-                child: Text(
-                  'No ${widget.mediaType == MediaType.video ? 'videos' : 'images'} available.',
-                ),
-              )
+                  child: Text(
+                    'No ${widget.mediaType == MediaType.video ? 'videos' : 'images'} available.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                )
               : GridView.builder(
-                padding: const EdgeInsets.all(8),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
+                  padding: const EdgeInsets.all(8),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: _assets.length,
+                  itemBuilder: (ctx, i) => _AssetTile(
+                    asset: _assets[i],
+                    selected: _selected.contains(_assets[i]),
+                    onTap: () => _toggle(_assets[i]),
+                    cache: _thumbnailCache,
+                  ),
                 ),
-                itemCount: _assets.length,
-                itemBuilder:
-                    (ctx, i) => _AssetTile(
-                      asset: _assets[i],
-                      selected: _selected.contains(_assets[i]),
-                      onTap: () => _toggle(_assets[i]),
-                      cache: _thumbnailCache,
-                    ),
-              ),
     );
   }
 }
@@ -263,12 +239,11 @@ class _AssetTile extends StatelessWidget {
   final VoidCallback onTap;
   final Map<String, Uint8List?> cache;
 
-  const _AssetTile({
-    required this.asset,
-    required this.selected,
-    required this.onTap,
-    required this.cache,
-  });
+  const _AssetTile(
+      {required this.asset,
+      required this.selected,
+      required this.onTap,
+      required this.cache});
 
   @override
   Widget build(BuildContext context) {
@@ -280,19 +255,16 @@ class _AssetTile extends StatelessWidget {
           _Thumb(asset: asset, cache: cache),
           if (asset.type == AssetType.video)
             const Positioned(
-              bottom: 6,
-              left: 6,
-              child: Icon(Icons.videocam, size: 16, color: Colors.white),
-            ),
+                bottom: 6,
+                left: 6,
+                child: Icon(Icons.videocam, size: 16, color: Colors.white)),
           if (selected)
             Positioned(
               top: 6,
               right: 6,
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
+                    color: Colors.blue, shape: BoxShape.circle),
                 padding: const EdgeInsets.all(4),
                 child: const Icon(Icons.check, size: 14, color: Colors.white),
               ),
@@ -328,9 +300,8 @@ class _ThumbState extends State<_Thumb> {
       setState(() => _data = widget.cache[key]);
       return;
     }
-    final Uint8List? bytes = await widget.asset.thumbnailDataWithSize(
-      const ThumbnailSize(256, 256),
-    );
+    final Uint8List? bytes =
+        await widget.asset.thumbnailDataWithSize(const ThumbnailSize(256, 256));
     widget.cache[key] = bytes;
     if (mounted) setState(() => _data = bytes);
   }
@@ -341,8 +312,7 @@ class _ThumbState extends State<_Thumb> {
       return const ColoredBox(color: Color(0xFFE0E0E0));
     }
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.memory(_data!, fit: BoxFit.cover),
-    );
+        borderRadius: BorderRadius.circular(8),
+        child: Image.memory(_data!, fit: BoxFit.cover));
   }
 }

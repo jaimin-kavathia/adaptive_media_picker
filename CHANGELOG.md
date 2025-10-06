@@ -1,3 +1,21 @@
+## 0.0.6 — 2025-10-06
+
+Non-breaking DX improvements: typed errors and richer result metadata.
+
+- Results
+  - `PickResultSingle` now exposes `metadata: PickMetadata` with:
+    - `cropApplied`, `originalSize`, and `finalSize` (when measurable)
+  - Added `error: PickError?` to disambiguate empty results:
+    - `canceled` (user canceled), `cropCanceled`, `io`, `unknown`
+- Options
+  - `PickOptions.logTag` (optional) for easier internal tracing in debug logs
+- Behavior
+  - Populates `originalSize` and `finalSize` for single-image picks (incl. cropped)
+  - Sets `PickError.canceled` when selection dialogs return null/empty
+  - Sets `PickError.cropCanceled` when crop UI is dismissed without saving
+- Analyzer
+  - Guarded context across async gaps where size decoding/crop occurs
+
 ## 0.0.5 — 2025-10-06
 
 Cropping feature finalized with platform guards, stubs, and docs updates:

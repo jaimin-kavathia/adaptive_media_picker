@@ -2,7 +2,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:photo_manager/photo_manager.dart' as pm;
 import 'package:photo_manager/photo_manager.dart';
 
 import '../core/models.dart';
@@ -74,8 +73,7 @@ class PermissionManager {
         if (mediaType == MediaType.video) {
           videosStatus = await Permission.videos.request();
         }
-        final bool permanentlyDenied =
-            photosStatus.isPermanentlyDenied ||
+        final bool permanentlyDenied = photosStatus.isPermanentlyDenied ||
             (videosStatus?.isPermanentlyDenied ?? false);
         if (permanentlyDenied) {
           return PermissionResolution.denied(permanentlyDenied: true);
@@ -84,37 +82,36 @@ class PermissionManager {
         // Get albums (only images)
         final List<AssetPathEntity> albums =
             await PhotoManager.getAssetPathList(
-              onlyAll: true,
-              type: RequestType.image,
-            );
+          onlyAll: true,
+          type: RequestType.all,
+        );
 
         if (albums.isNotEmpty) {
           final List<AssetEntity> assets = await albums.first.getAssetListRange(
             start: 0,
-            end: 500,
+            end: 100,
           );
 
-          final validImages =
-              assets
-                  .where(
-                    (asset) =>
-                        asset.type == AssetType.image &&
-                        isValidImageExtension(asset.title ?? ''),
-                  )
-                  .toList();
+          final validImages = assets
+              .where(
+                (asset) =>
+                    asset.type == AssetType.image &&
+                    isValidImageExtension(asset.title ?? ''),
+              )
+              .toList();
 
-          final validVideos =
-              assets
-                  .where(
-                    (asset) =>
-                        asset.type == AssetType.image &&
-                        isValidImageExtension(asset.title ?? ''),
-                  )
-                  .toList();
+          final validVideos = assets
+              .where(
+                (asset) =>
+                    asset.type == AssetType.video &&
+                    isValidVideoExtension(asset.title ?? ''),
+              )
+              .toList();
 
           // If either permission is limited, treat as limited
-          final bool isLimited =
-              validImages.isNotEmpty ||
+          final bool isLimited = (mediaType == MediaType.image
+                  ? validImages.isNotEmpty
+                  : false) ||
               (mediaType == MediaType.video ? validVideos.isNotEmpty : false);
           if (isLimited) return PermissionResolution.grantedLimited();
         }
@@ -162,7 +159,7 @@ class PermissionManager {
   Future<void> presentLimitedIfAvailable() async {
     if (kIsWeb) return;
     if (defaultTargetPlatform == TargetPlatform.iOS) {
-      await pm.PhotoManager.presentLimited(type: pm.RequestType.common);
+      await PhotoManager.presentLimited(type: RequestType.common);
     }
   }
 

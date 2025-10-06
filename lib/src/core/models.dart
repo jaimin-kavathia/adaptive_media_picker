@@ -1,3 +1,4 @@
+import 'dart:ui' show Size;
 import 'package:image_picker/image_picker.dart';
 
 /// Core models used by AdaptiveMediaPicker.
@@ -60,6 +61,9 @@ class PickOptions {
   /// Ignored for videos.
   final bool wantToCrop;
 
+  /// Optional tag included in internal debug logs to help trace flows.
+  final String? logTag;
+
   /// Create a set of options for a pick operation.
   const PickOptions({
     this.maxImages,
@@ -73,6 +77,7 @@ class PickOptions {
     this.settingsButtonLabel,
     this.cancelButtonLabel,
     this.wantToCrop = false,
+    this.logTag,
   });
 }
 
@@ -102,13 +107,56 @@ class PickedMedia {
 class PickResultSingle {
   final PickedMedia? item;
   final PermissionResolution permissionResolution;
+
+  /// Optional metadata describing how the item was produced (e.g., crop info).
+  final PickMetadata metadata;
+
+  /// Optional typed error indicating why the result is empty or special.
+  final PickError? error;
   const PickResultSingle({
     required this.item,
     required this.permissionResolution,
+    this.metadata = const PickMetadata(),
+    this.error,
   });
 
   /// True when no item was selected.
   bool get isEmpty => item == null;
+}
+
+/// Metadata attached to a single pick result.
+///
+/// Useful for debugging and post-processing pipelines.
+class PickMetadata {
+  /// True if a crop step was applied.
+  final bool cropApplied;
+
+  /// Size of the original image when known.
+  final Size? originalSize;
+
+  /// Size of the final image after transformations when known.
+  final Size? finalSize;
+
+  const PickMetadata({
+    this.cropApplied = false,
+    this.originalSize,
+    this.finalSize,
+  });
+}
+
+/// Typed error for single-pick flows to disambiguate empty results.
+enum PickError {
+  /// User canceled the selection flow.
+  canceled,
+
+  /// User canceled the crop operation.
+  cropCanceled,
+
+  /// I/O or platform failure.
+  io,
+
+  /// Unknown reason.
+  unknown,
 }
 
 /// Result for multi-image flows. [items] may be empty.
@@ -149,14 +197,14 @@ class PermissionResolution {
       );
 
   factory PermissionResolution.grantedFull() => const PermissionResolution(
-    granted: true,
-    limited: false,
-    permanentlyDenied: false,
-  );
+        granted: true,
+        limited: false,
+        permanentlyDenied: false,
+      );
 
   factory PermissionResolution.grantedLimited() => const PermissionResolution(
-    granted: true,
-    limited: true,
-    permanentlyDenied: false,
-  );
+        granted: true,
+        limited: true,
+        permanentlyDenied: false,
+      );
 }

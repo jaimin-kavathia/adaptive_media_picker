@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'mobile_image_cropper.dart'
-    if (dart.library.html) 'web_image_cropper.dart'
-    as backend_impl;
+import 'mobile_image_cropper.dart' as mobile_impl;
+import 'web_image_cropper.dart' as web_impl;
+import '../stub/image_cropper_stub.dart' as stub_impl;
 
 /// Platform-specific image cropper implementation.
 ///
@@ -26,12 +26,33 @@ class PlatformImageCropper {
     }
 
     try {
-      return await backend_impl.BackendImageCropper.cropImage(
-        sourcePath: sourcePath,
-        context: context,
-        compressFormat: compressFormat,
-        compressQuality: compressQuality,
-      );
+      if (kIsWeb) {
+        if (context == null) {
+          debugPrint('BuildContext is required for web cropping.');
+          return null;
+        }
+        return web_impl.BackendImageCropper.cropImage(
+          sourcePath: sourcePath,
+          context: context,
+          compressFormat: compressFormat,
+          compressQuality: compressQuality,
+        );
+      } else if (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS) {
+        return mobile_impl.BackendImageCropper.cropImage(
+          sourcePath: sourcePath,
+          context: context,
+          compressFormat: compressFormat,
+          compressQuality: compressQuality,
+        );
+      } else {
+        return stub_impl.PlatformImageCropper.cropImage(
+          sourcePath: sourcePath,
+          context: context,
+          compressFormat: compressFormat,
+          compressQuality: compressQuality,
+        );
+      }
     } catch (e) {
       debugPrint('Image cropping failed: $e');
       return null;
