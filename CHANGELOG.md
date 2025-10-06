@@ -1,3 +1,18 @@
+## 0.0.5 — 2025-10-06
+
+Cropping feature finalized with platform guards, stubs, and docs updates:
+
+- Feature: Optional cropping for single image picks (`PickOptions.wantToCrop`)
+  - Supported on Android, iOS, Web
+  - No-op on Desktop (macOS, Windows, Linux) — returns original image
+- Limited access: Cropping now works when selecting from the limited-access picker (single image)
+- Android: Ensure `UCropActivity` is declared in app manifest (documented)
+- Web: Uses `image_cropper` (cropperjs) with dialog style and fixed size; requires including CSS/JS in `index.html`
+- Internals:
+  - Introduced `PlatformImageCropper` with conditional imports for mobile/web and a desktop stub
+  - Removed direct `ImageCropper` usage from the picker; unified call sites
+  - Fixed analyzer issues: context guards (mounted checks), removed custom aspect ratio type
+
 ## 0.0.4 — 2025-09-23
 
 Analyzer and formatting cleanups; no API changes:

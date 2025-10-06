@@ -9,10 +9,16 @@ enum MediaType { image, video }
 
 /// Options that configure a pick operation (method-specific defaults apply).
 ///
-/// - [maxImages] limits multi-image picks (images only)
-/// - [imageQuality], [maxWidth], [maxHeight] are forwarded to `image_picker`
-/// - [source] chooses camera or gallery (camera falls back to gallery on web/desktop)
-/// - Settings dialog text can be customized via the provided fields
+/// Use cases:
+/// - Call `pickImage` for a single image. Cropping can be enabled via [wantToCrop].
+/// - Call `pickVideo` for a single video. Cropping is ignored for videos.
+/// - Call `pickMultiImage` for multiple images and optionally cap the count via [maxImages].
+///
+/// Notes:
+/// - [maxImages] limits multi-image picks (images only).
+/// - [imageQuality], [maxWidth], [maxHeight] are forwarded to `image_picker` when supported.
+/// - [source] chooses camera or gallery. On web/desktop, camera transparently falls back to gallery.
+/// - Settings dialog text can be customized via the provided fields.
 class PickOptions {
   /// Maximum number of images to return for multi-image picks.
   /// Ignored by `pickImage`/`pickVideo`.
@@ -45,6 +51,15 @@ class PickOptions {
   /// Cancel button label for the settings dialog.
   final String? cancelButtonLabel;
 
+  /// If true and picking a single image, opens the platform cropper UI after
+  /// selection.
+  ///
+  /// Platform support: Android, iOS, and Web. On desktop platforms, cropping
+  /// is a no-op and the original image path is returned.
+  ///
+  /// Ignored for videos.
+  final bool wantToCrop;
+
   /// Create a set of options for a pick operation.
   const PickOptions({
     this.maxImages,
@@ -57,6 +72,7 @@ class PickOptions {
     this.settingsDialogMessage,
     this.settingsButtonLabel,
     this.cancelButtonLabel,
+    this.wantToCrop = false,
   });
 }
 

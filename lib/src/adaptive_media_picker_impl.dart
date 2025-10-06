@@ -5,6 +5,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+// Conditional imports for image cropping
+import 'stub/image_cropper_stub.dart'
+    if (dart.library.io) 'platform/image_cropper_impl.dart'
+    if (dart.library.html) 'platform/image_cropper_impl.dart';
+
 import 'stub/limited_access_picker_stub.dart'
     if (dart.library.io) 'ui/limited_access_picker.dart';
 import 'stub/permission_manager_stub.dart'
@@ -33,6 +38,11 @@ class AdaptiveMediaPicker {
 
   /// Pick a single image.
   ///
+  /// Use cases:
+  /// - Simple avatar/photo selection from gallery or camera.
+  /// - Enable cropping with [PickOptions.wantToCrop] on Android/iOS/Web.
+  ///
+  /// Behavior:
   /// - Honors [PickOptions.source] (camera/gallery). On web/desktop, camera
   ///   transparently falls back to gallery.
   /// - Returns a [PickResultSingle] with either one item or `null`.
@@ -45,8 +55,12 @@ class AdaptiveMediaPicker {
 
   /// Pick a single video.
   ///
-  /// Multi-pick videos are not supported by native APIs.
-  /// Returns a [PickResultSingle].
+  /// Use cases:
+  /// - Choose a video from gallery or capture a single clip.
+  ///
+  /// Notes:
+  /// - Multi-pick videos are not supported by native APIs.
+  /// - Returns a [PickResultSingle].
   Future<PickResultSingle> pickVideo({
     required BuildContext context,
     PickOptions options = const PickOptions(),
@@ -56,8 +70,12 @@ class AdaptiveMediaPicker {
 
   /// Pick multiple images.
   ///
-  /// Enforces [PickOptions.maxImages] across platforms and returns a
-  /// [PickResultMultiple].
+  /// Use cases:
+  /// - Select a batch of images from the gallery with an optional cap.
+  ///
+  /// Behavior:
+  /// - Enforces [PickOptions.maxImages] across platforms and returns a
+  ///   [PickResultMultiple].
   Future<PickResultMultiple> pickMultiImage({
     required BuildContext context,
     PickOptions options = const PickOptions(),
@@ -109,11 +127,33 @@ class AdaptiveMediaPicker {
         maxWidth: options.maxWidth?.toDouble(),
         maxHeight: options.maxHeight?.toDouble(),
       );
+      if (image == null) {
+        return PickResultSingle(
+          item: null,
+          permissionResolution: PermissionResolution.grantedFull(),
+        );
+      }
+      if (options.wantToCrop) {
+        if (!context.mounted) {
+          return PickResultSingle(
+            item: PickedMedia(path: image.path, mimeType: null),
+            permissionResolution: PermissionResolution.grantedFull(),
+          );
+        }
+        final String? croppedPath = await PlatformImageCropper.cropImage(
+          sourcePath: image.path,
+          context: context,
+          compressFormat: 'jpg',
+          compressQuality: 100,
+        );
+        final String path = croppedPath ?? image.path;
+        return PickResultSingle(
+          item: PickedMedia(path: path, mimeType: null),
+          permissionResolution: PermissionResolution.grantedFull(),
+        );
+      }
       return PickResultSingle(
-        item:
-            image == null
-                ? null
-                : PickedMedia(path: image.path, mimeType: null),
+        item: PickedMedia(path: image.path, mimeType: null),
         permissionResolution: PermissionResolution.grantedFull(),
       );
     }
@@ -158,14 +198,28 @@ class AdaptiveMediaPicker {
       final items = await Future.wait(
         selected.map((e) async {
           final file = await e.file;
-          return file == null
-              ? null
-              : PickedMedia(
-                path: file.path,
-                mimeType: e.mimeType,
-                width: e.width,
-                height: e.height,
-              );
+          if (file == null) return null;
+
+          String finalPath = file.path;
+
+          // Apply cropping for single image picks with limited access
+          if (options.wantToCrop && !wantsVideo) {
+            final String? croppedPath = await PlatformImageCropper.cropImage(
+              sourcePath: file.path,
+              compressFormat: 'jpg',
+              compressQuality: 100,
+            );
+            if (croppedPath != null) {
+              finalPath = croppedPath;
+            }
+          }
+
+          return PickedMedia(
+            path: finalPath,
+            mimeType: e.mimeType,
+            width: e.width,
+            height: e.height,
+          );
         }),
       );
       final List<PickedMedia> picked = items.whereType<PickedMedia>().toList();
@@ -211,6 +265,19 @@ class AdaptiveMediaPicker {
     );
     if (image == null) {
       return PickResultSingle(item: null, permissionResolution: permission);
+    }
+    // Optionally crop for single image
+    if (options.wantToCrop) {
+      final String? croppedPath = await PlatformImageCropper.cropImage(
+        sourcePath: image.path,
+        compressFormat: 'jpg',
+        compressQuality: 100,
+      );
+      final String path = croppedPath ?? image.path;
+      return PickResultSingle(
+        item: PickedMedia(path: path, mimeType: null),
+        permissionResolution: permission,
+      );
     }
     return PickResultSingle(
       item: PickedMedia(path: image.path, mimeType: null),
@@ -485,3 +552,5 @@ class AdaptiveMediaPicker {
         false;
   }
 }
+
+// Removed custom aspect ratio preset; using stock presets per platform

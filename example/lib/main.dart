@@ -74,6 +74,34 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
     });
   }
 
+  Future<void> _runPickSingleImageCropped({required ImageSource source}) async {
+    setState(() => _status = 'Requesting...');
+    final result = await _picker.pickImage(
+      context: context,
+      options: PickOptions(
+        source: source,
+        imageQuality: 80,
+        wantToCrop: true,
+        showOpenSettingsDialog: true,
+        settingsDialogTitle: 'Permission required',
+        settingsDialogMessage: 'Please allow Photos/Camera to continue.',
+        settingsButtonLabel: 'Open Settings',
+        cancelButtonLabel: 'Cancel',
+      ),
+    );
+    setState(() {
+      if (!result.permissionResolution.granted) {
+        _items = const [];
+        _status = result.permissionResolution.permanentlyDenied
+            ? 'Permission permanently denied. Prompted to open settings.'
+            : 'Permission denied.';
+      } else {
+        _items = result.item == null ? const [] : [result.item!];
+      }
+      _status = 'Picked ${_items.length} item(s).';
+    });
+  }
+
   Future<void> _runPickMultiImage({int? maxImages}) async {
     setState(() => _status = 'Requesting...');
     final result = await _picker.pickMultiImage(
@@ -147,6 +175,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                   onPressed: () =>
                       _runPickSingleImage(source: ImageSource.gallery),
                   child: const Text('Pick image (gallery)'),
+                ),
+                ElevatedButton(
+                  onPressed: () =>
+                      _runPickSingleImageCropped(source: ImageSource.gallery),
+                  child: const Text('Pick image (gallery, crop)'),
                 ),
                 ElevatedButton(
                   onPressed: () => _runPickMultiImage(maxImages: 5),

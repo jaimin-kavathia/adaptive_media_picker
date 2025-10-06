@@ -22,6 +22,7 @@ This package makes it **super easy** for developers by:
 
 ✅ Automatically handling permissions  
 ✅ Providing a **built-in limited-access sheet**  
+✅ Optional **image cropping** (Android/iOS/Web)  
 ✅ Falling back smartly for unsupported platforms (desktop/web)  
 ✅ Offering **one simple API** for images & videos
 
@@ -39,14 +40,29 @@ This package makes it **super easy** for developers by:
 
 ## 🚀 Features
 
-- 📷 Pick **single image**, **multiple images**, or **single video**
-- 🔐 **Permission-aware** (handles full, limited, denied states)
-- 🖼️ Custom **limited-access bottom sheet** (powered by `photo_manager`)
-- 🌍 Works on **mobile, web, and desktop**
-- 🎯 **No dart:io** → safe for web builds
-- 🎥 Fallback to gallery when camera unavailable (e.g., web/desktop)
+- 📷 Pick **single image**, **multiple images**, or **single video**  
+- ✂️ **Crop support** for single images (Android, iOS, Web)  
+- 🔐 **Permission-aware** (handles full, limited, denied states)  
+- 🖼️ Built-in **limited-access bottom sheet**  
+- 🌍 Works on **mobile, web, and desktop**  
+- 🎯 **No dart:io** → safe for web builds  
+- 🎥 Fallback to gallery when camera unavailable (e.g., web/desktop)  
 
 ⚠️ **Note**: Multiple video selection is not supported by native APIs.
+
+---
+
+## 🗂️ Platform Support Matrix
+
+| Feature                | Android | iOS | Web | macOS | Windows | Linux |
+|-------------------------|:------:|:---:|:---:|:----:|:------:|:-----:|
+| Single image pick       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Multi-image pick        | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Single video pick       | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Multiple videos         | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Camera capture          | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Limited-access UX       | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Cropping (single image) | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 
 ---
 
@@ -63,11 +79,17 @@ final singleImage = await picker.pickImage(
     imageQuality: 80,
   ),
 );
-if (singleImage.item != null) {
-  // use singleImage.item
-}
 
-// Pick multiple images (max 5)
+// Pick a single image with cropping (Android/iOS/Web)
+final croppedImage = await picker.pickImage(
+  context: context,
+  options: const PickOptions(
+    source: ImageSource.gallery,
+    wantToCrop: true,
+  ),
+);
+
+// Pick multiple images
 final multiImages = await picker.pickMultiImage(
   context: context,
   options: const PickOptions(maxImages: 5, source: ImageSource.gallery),
@@ -78,16 +100,51 @@ final singleVideo = await picker.pickVideo(
   context: context,
   options: const PickOptions(source: ImageSource.gallery),
 );
-```
+````
 
 ---
 
 ## 📌 Common Use Cases
 
-✅ Pick profile picture (single image)  
-✅ Select multiple images for an album/post  
-✅ Pick a single video from gallery/camera  
-✅ Handle limited-access gracefully with a **ready-to-use bottom sheet**
+✅ Pick profile picture (with optional crop)
+✅ Select multiple images for an album/post
+✅ Pick a single video from gallery/camera
+✅ Handle limited-access gracefully with a built-in bottom sheet
+
+---
+
+## ✂️ Cropping Setup
+
+Cropping works for **Android, iOS, and Web** only. On desktop platforms cropping is ignored and the original image is returned.
+
+### Android
+
+Add `UCropActivity` to your `AndroidManifest.xml`:
+
+```xml
+<activity
+  android:name="com.yalantis.ucrop.UCropActivity"
+  android:screenOrientation="portrait"
+  android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+```
+
+*(Android embedding v2 required)*
+
+### iOS
+
+No additional configuration needed.
+
+### Web
+
+Add **cropperjs** to your `web/index.html`:
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.css"
+/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+```
 
 ---
 
@@ -95,20 +152,17 @@ final singleVideo = await picker.pickVideo(
 
 When the user grants **limited access**:
 
-- A dialog is shown with:
-  - **Manage Selection** (iOS only)
-  - **Open Settings** (iOS/macOS/Android)
-- If the user interacts, the sheet closes automatically
+* A dialog is shown with:
 
-You don’t need to handle permissions manually — the picker does it for you.
+  * **Manage Selection** (iOS only)
+  * **Open Settings** (iOS/macOS/Android)
+* If the user interacts, the sheet closes automatically
 
 ---
 
-## ⚙️ Platform Setup
+## ⚙️ Platform Setup (Permissions)
 
-### 📱 Android
-
-Add required permissions in `AndroidManifest.xml`:
+### Android
 
 ```xml
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -118,9 +172,7 @@ Add required permissions in `AndroidManifest.xml`:
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 ```
 
-### 🍎 iOS
-
-Add to `Info.plist`:
+### iOS
 
 ```xml
 <key>NSPhotoLibraryUsageDescription</key>
@@ -133,47 +185,44 @@ Add to `Info.plist`:
 <string>This app may save images/videos to your photo library.</string>
 ```
 
-### 💻 Desktop (Windows, macOS, Linux)
-
-- Uses `file_selector` via `image_picker`
-- No runtime permissions (file dialog is native)
-- Camera capture not supported
-- On **macOS**, add to `Info.plist`:
+### macOS
 
 ```xml
 <key>com.apple.security.files.user-selected.read-only</key>
 <true/>
 ```
 
-### 🌐 Web
-
-- Uses browser file picker
-- Camera capture not supported
+Desktop (Windows, macOS, Linux) → uses native file dialogs. Camera not supported.
 
 ---
 
 ## 🧩 API Overview
 
 ### Options
-- `maxImages` → Limit for multi-image picking
-- `imageQuality`, `maxWidth`, `maxHeight` → Resize/compression options
-- `source` → `ImageSource.gallery` | `ImageSource.camera`
-- Settings dialog options → `showOpenSettingsDialog`, `settingsDialogTitle`, `settingsDialogMessage`, etc.
+
+* `maxImages` → Limit for multi-image picking
+* `imageQuality`, `maxWidth`, `maxHeight` → Resize/compression options
+* `source` → `ImageSource.gallery` | `ImageSource.camera`
+* `wantToCrop` → Enable cropping (Android/iOS/Web, single-image only)
+* Dialog / settings options → `showOpenSettingsDialog`, `settingsDialogTitle`, `settingsDialogMessage`
 
 ### Results
-- `PickResultSingle { item, permissionResolution }`
-- `PickResultMultiple { items, permissionResolution }`
+
+* `PickResultSingle { item, permissionResolution }`
+* `PickResultMultiple { items, permissionResolution }`
 
 ### Methods
-- `pickImage` → Single image
-- `pickMultiImage` → Multiple images
-- `pickVideo` → Single video
+
+* `pickImage` → Single image (with optional crop)
+* `pickMultiImage` → Multiple images
+* `pickVideo` → Single video
 
 ---
 
 ## 👤 Author
 
 Created with ❤️ by **[Jaimin Kavathia](https://jaimin-kavathia.github.io/)**
+Connect on [LinkedIn](https://in.linkedin.com/in/jaimin-kavathia-flutter-developer)
 
 ---
 
