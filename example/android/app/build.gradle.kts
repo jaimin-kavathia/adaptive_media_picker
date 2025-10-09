@@ -39,6 +39,12 @@ android {
     }
 }
 
+dependencies {
+    // Required by UCrop (used by image_cropper) when performing network operations
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okio:okio:3.6.0")
+}
+
 flutter {
     source = "../.."
 }

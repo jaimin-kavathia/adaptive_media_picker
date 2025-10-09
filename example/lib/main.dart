@@ -13,24 +13,55 @@ void main() {
   runApp(const ExampleApp());
 }
 
-class ExampleApp extends StatelessWidget {
+class ExampleApp extends StatefulWidget {
   const ExampleApp({super.key});
 
   @override
+  State<ExampleApp> createState() => _ExampleAppState();
+}
+
+class _ExampleAppState extends State<ExampleApp> {
+  bool _darkMode = false;
+
+  @override
   Widget build(BuildContext context) {
+    final ThemeData lightTheme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.blue,
+        brightness: Brightness.light,
+      ),
+      useMaterial3: true,
+    );
+    final ThemeData darkTheme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.blue,
+        brightness: Brightness.dark,
+      ),
+      useMaterial3: true,
+    );
     return MaterialApp(
       title: 'adaptive_media_picker example',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: _darkMode ? ThemeMode.dark : ThemeMode.light,
+      home: ExampleHomePage(
+        darkMode: _darkMode,
+        onToggleTheme: () => setState(() => _darkMode = !_darkMode),
       ),
-      home: const ExampleHomePage(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
 class ExampleHomePage extends StatefulWidget {
-  const ExampleHomePage({super.key});
+  const ExampleHomePage({
+    super.key,
+    required this.darkMode,
+    required this.onToggleTheme,
+  });
+
+  final bool darkMode;
+  final VoidCallback onToggleTheme;
 
   @override
   State<ExampleHomePage> createState() => _ExampleHomePageState();
@@ -54,6 +85,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
       options: PickOptions(
         source: source,
         imageQuality: 80,
+        themeBrightness: widget.darkMode ? Brightness.dark : Brightness.light,
+        primaryColor: Colors.blue,
         showOpenSettingsDialog: true,
         settingsDialogTitle: 'Permission required',
         settingsDialogMessage: 'Please allow Photos/Camera to continue.',
@@ -82,6 +115,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
         source: source,
         imageQuality: 80,
         wantToCrop: true,
+        themeBrightness: widget.darkMode ? Brightness.dark : Brightness.light,
+        primaryColor: Colors.blue,
         showOpenSettingsDialog: true,
         settingsDialogTitle: 'Permission required',
         settingsDialogMessage: 'Please allow Photos/Camera to continue.',
@@ -110,6 +145,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
         maxImages: maxImages,
         source: ImageSource.gallery,
         imageQuality: 80,
+        themeBrightness: widget.darkMode ? Brightness.dark : Brightness.light,
+        primaryColor: Colors.blue,
         showOpenSettingsDialog: true,
         settingsDialogTitle: 'Permission required',
         settingsDialogMessage: 'Please allow Photos/Camera to continue.',
@@ -136,6 +173,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
       context: context,
       options: PickOptions(
         source: source,
+        themeBrightness: widget.darkMode ? Brightness.dark : Brightness.light,
+        primaryColor: Colors.blue,
         showOpenSettingsDialog: true,
         settingsDialogTitle: 'Permission required',
         settingsDialogMessage: 'Please allow Photos/Camera to continue.',
@@ -161,8 +200,24 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
     final cameraDisabled =
         _isDesktop; // Desktop camera not supported without a delegate
 
+    final Color onSurface = Theme.of(context).colorScheme.onSurface;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('adaptive_media_picker example')),
+      appBar: AppBar(
+        title: const Text('adaptive_media_picker example'),
+        actions: [
+          Row(
+            children: [
+              Icon(widget.darkMode ? Icons.dark_mode : Icons.light_mode),
+              Switch(
+                value: widget.darkMode,
+                onChanged: (_) => widget.onToggleTheme(),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -205,13 +260,16 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
             ),
           ),
           if (cameraDisabled)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Note: On desktop, camera capture is not supported in this package. The call falls back to gallery.',
-                  style: TextStyle(fontStyle: FontStyle.italic),
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: onSurface,
+                  ),
                 ),
               ),
             ),
@@ -221,14 +279,16 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               alignment: Alignment.centerLeft,
               child: Text(
                 _status,
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600, color: onSurface),
               ),
             ),
           ),
           const Divider(height: 1),
           Expanded(
             child: _items.isEmpty
-                ? const Center(child: Text('No items'))
+                ? Center(
+                    child: Text('No items', style: TextStyle(color: onSurface)),
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.all(12),
                     itemCount: _items.length,

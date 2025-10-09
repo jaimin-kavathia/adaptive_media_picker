@@ -1,4 +1,4 @@
-import 'dart:ui' show Size;
+import 'dart:ui' show Size, Color, Brightness;
 import 'package:image_picker/image_picker.dart';
 
 /// Core models used by AdaptiveMediaPicker.
@@ -64,6 +64,18 @@ class PickOptions {
   /// Optional tag included in internal debug logs to help trace flows.
   final String? logTag;
 
+  /// Optional override for UI brightness used by the package-provided
+  /// limited-access sheet and the cropper toolbars (when supported).
+  ///
+  /// If null, the app's current theme brightness is used.
+  final Brightness? themeBrightness;
+
+  /// Optional primary color override used by the package-provided
+  /// limited-access sheet accents and cropper toolbar color.
+  ///
+  /// If null, `Theme.of(context).colorScheme.primary` is used.
+  final Color? primaryColor;
+
   /// Create a set of options for a pick operation.
   const PickOptions({
     this.maxImages,
@@ -78,6 +90,8 @@ class PickOptions {
     this.cancelButtonLabel,
     this.wantToCrop = false,
     this.logTag,
+    this.themeBrightness,
+    this.primaryColor,
   });
 }
 

@@ -41,21 +41,41 @@ class LimitedAccessPicker extends StatefulWidget {
     bool allowMultiple = false,
     int? maxImages,
     MediaType mediaType = MediaType.image,
+    Brightness? themeBrightness,
+    Color? primaryColor,
   }) async {
+    final ThemeData base = Theme.of(context);
+    final Brightness brightness = themeBrightness ?? base.brightness;
+    final Color schemePrimary = primaryColor ?? base.colorScheme.primary;
+    final ColorScheme scheme = base.colorScheme.copyWith(
+      brightness: brightness,
+      primary: schemePrimary,
+    );
+    final ThemeData themed = base.copyWith(
+      colorScheme: scheme,
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
+      ),
+    );
+
     return await showModalBottomSheet<List<AssetEntity>>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: themed.colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
             topLeft: Radius.circular(12), topRight: Radius.circular(12)),
       ),
-      builder: (ctx) => SizedBox(
-        height: MediaQuery.of(ctx).size.height * 0.85,
-        child: LimitedAccessPicker(
-            allowMultiple: allowMultiple,
-            maxImages: maxImages,
-            mediaType: mediaType),
+      builder: (ctx) => Theme(
+        data: themed,
+        child: SizedBox(
+          height: MediaQuery.of(ctx).size.height * 0.85,
+          child: LimitedAccessPicker(
+              allowMultiple: allowMultiple,
+              maxImages: maxImages,
+              mediaType: mediaType),
+        ),
       ),
     );
   }

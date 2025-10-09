@@ -158,6 +158,8 @@ class AdaptiveMediaPicker {
           context: context,
           compressFormat: 'jpg',
           compressQuality: 100,
+          themeBrightness: options.themeBrightness,
+          primaryColor: options.primaryColor,
         );
         final String path = croppedPath ?? image.path;
         final Size? finalSize = croppedPath == null
@@ -223,6 +225,8 @@ class AdaptiveMediaPicker {
         allowMultiple: false,
         maxImages: options.maxImages,
         mediaType: wantsVideo ? MediaType.video : MediaType.image,
+        themeBrightness: options.themeBrightness,
+        primaryColor: options.primaryColor,
       );
       if (selected == null || selected.isEmpty) {
         return PickResultSingle(
@@ -251,6 +255,8 @@ class AdaptiveMediaPicker {
               sourcePath: file.path,
               compressFormat: 'jpg',
               compressQuality: 100,
+              themeBrightness: options.themeBrightness,
+              primaryColor: options.primaryColor,
             );
             if (croppedPath != null) {
               finalPath = croppedPath;
@@ -337,6 +343,8 @@ class AdaptiveMediaPicker {
         sourcePath: image.path,
         compressFormat: 'jpg',
         compressQuality: 100,
+        themeBrightness: options.themeBrightness,
+        primaryColor: options.primaryColor,
       );
       final String path = croppedPath ?? image.path;
       final Size? finalSize = croppedPath == null
@@ -474,6 +482,8 @@ class AdaptiveMediaPicker {
         allowMultiple: true,
         maxImages: options.maxImages,
         mediaType: MediaType.image,
+        themeBrightness: options.themeBrightness,
+        primaryColor: options.primaryColor,
       );
       if (selected == null || selected.isEmpty) {
         return PickResultMultiple(
@@ -532,6 +542,8 @@ class AdaptiveMediaPicker {
           allowMultiple: true,
           maxImages: options.maxImages,
           mediaType: MediaType.image,
+          themeBrightness: options.themeBrightness,
+          primaryColor: options.primaryColor,
         );
         if (selected == null || selected.isEmpty) {
           return PickResultMultiple(

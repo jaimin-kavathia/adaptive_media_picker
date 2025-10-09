@@ -9,6 +9,8 @@ class BackendImageCropper {
     required BuildContext context,
     String compressFormat = 'jpg',
     int compressQuality = 100,
+    Brightness? themeBrightness,
+    Color? primaryColor,
   }) async {
     try {
       final ImageCompressFormat format = compressFormat == 'png'

@@ -18,6 +18,8 @@ class PlatformImageCropper {
     BuildContext? context,
     String compressFormat = 'jpg',
     int compressQuality = 100,
+    Brightness? themeBrightness,
+    Color? primaryColor,
   }) async {
     // Check if cropping is supported on this platform
     if (!_isCroppingSupported()) {
@@ -36,6 +38,8 @@ class PlatformImageCropper {
           context: context,
           compressFormat: compressFormat,
           compressQuality: compressQuality,
+          themeBrightness: themeBrightness,
+          primaryColor: primaryColor,
         );
       } else if (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS) {
@@ -44,6 +48,8 @@ class PlatformImageCropper {
           context: context,
           compressFormat: compressFormat,
           compressQuality: compressQuality,
+          themeBrightness: themeBrightness,
+          primaryColor: primaryColor,
         );
       } else {
         return stub_impl.PlatformImageCropper.cropImage(

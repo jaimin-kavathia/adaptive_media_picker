@@ -19,6 +19,8 @@ class LimitedAccessPicker {
     bool allowMultiple = false,
     int? maxImages,
     MediaType mediaType = MediaType.image,
+    Brightness? themeBrightness,
+    Color? primaryColor,
   }) async {
     throw UnsupportedError(
       'LimitedAccessPicker is not supported on this platform.',

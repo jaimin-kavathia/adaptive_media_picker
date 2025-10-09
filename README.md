@@ -41,15 +41,15 @@ Most media pickers only open the gallery or camera — but fail when permissions
 
 ## 🚀 Features at a Glance
 
-| Feature                        | Description                                  |
-| :----------------------------- | :------------------------------------------- |
-| 📷 Image & Video Picker        | Pick single/multiple images or single videos |
-| ✂️ Cropping                    | Optional crop (Android, iOS, Web)            |
-| 🔐 Permission-aware            | Handles full, limited, denied states         |
-| 🧭 Cross-platform              | Works on mobile, web, and desktop            |
+| Feature                       | Description                                  |
+| :---------------------------- | :------------------------------------------- |
+| 📷 Image & Video Picker       | Pick single/multiple images or single videos |
+| ✂️ Cropping                   | Optional crop (Android, iOS, Web)            |
+| 🔐 Permission-aware           | Handles full, limited, denied states         |
+| 🧭 Cross-platform             | Works on mobile, web, and desktop            |
 | 🖼️ Built-in Limited Access UI | Native-like bottom sheet                     |
-| 🧩 Fallbacks                   | Smart fallbacks for unsupported platforms    |
-| 🎯 Web Safe                    | No `dart:io` — works on Flutter Web          |
+| 🧩 Fallbacks                  | Smart fallbacks for unsupported platforms    |
+| 🎯 Web Safe                   | No `dart:io` — works on Flutter Web          |
 
 > ⚠️ Multiple video selection is **not supported** by native APIs.
 
@@ -59,13 +59,13 @@ Most media pickers only open the gallery or camera — but fail when permissions
 
 | Feature                 | Android | iOS | Web | macOS | Windows | Linux |
 | ----------------------- | :-----: | :-: | :-: | :---: | :-----: | :---: |
-| Single image pick       |    ✅    |  ✅  |  ✅  |   ✅   |    ✅    |   ✅   |
-| Multi-image pick        |    ✅    |  ✅  |  ✅  |   ✅   |    ✅    |   ✅   |
-| Single video pick       |    ✅    |  ✅  |  ✅  |   ✅   |    ✅    |   ✅   |
-| Multiple videos         |    ❌    |  ❌  |  ❌  |   ❌   |    ❌    |   ❌   |
-| Camera capture          |    ✅    |  ✅  |  ❌  |   ❌   |    ❌    |   ❌   |
-| Limited-access UX       |    ✅    |  ✅  |  ❌  |   ✅   |    ❌    |   ❌   |
-| Cropping (single image) |    ✅    |  ✅  |  ✅  |   ❌   |    ❌    |   ❌   |
+| Single image pick       |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
+| Multi-image pick        |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
+| Single video pick       |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
+| Multiple videos         |   ❌    | ❌  | ❌  |  ❌   |   ❌    |  ❌   |
+| Camera capture          |   ✅    | ✅  | ❌  |  ❌   |   ❌    |  ❌   |
+| Limited-access UX       |   ✅    | ✅  | ❌  |  ✅   |   ❌    |  ❌   |
+| Cropping (single image) |   ✅    | ✅  | ✅  |  ❌   |   ❌    |  ❌   |
 
 ---
 
@@ -101,12 +101,42 @@ final singleVideo = await picker.pickVideo(
 
 ---
 
+## 🎨 Theming
+
+Both the built-in limited-access bottom sheet and the optional cropper can follow your app theme or be overridden via `PickOptions`:
+
+- **Automatic**: By default, the package uses `Theme.of(context)` for surfaces and text.
+- **Override**: Set these optional fields on `PickOptions`:
+  - `themeBrightness`: `Brightness.light` or `Brightness.dark`
+  - `primaryColor`: the primary accent color (e.g. `Colors.blue`)
+
+Example:
+
+```dart
+final result = await picker.pickImage(
+  context: context,
+  options: const PickOptions(
+    wantToCrop: true,
+    themeBrightness: Brightness.dark,
+    primaryColor: Colors.blue,
+  ),
+);
+```
+
+Notes:
+
+- Limited-access bottom sheet inherits your app theme when overrides are not provided.
+- Android cropper toolbar, controls, and grid/frame colors derive from `themeBrightness` and `primaryColor`.
+- Web cropper uses the provided `context` (dialog/page) and will follow your theme colors; primary accent applies to available UI elements.
+
+---
+
 ## 📌 Common Use Cases
 
-* 🖼️ Select & crop a profile picture
-* 📸 Capture or choose multiple images for a gallery/post
-* 🎥 Pick single video from camera or gallery
-* 🔐 Handle **limited access** permissions gracefully
+- 🖼️ Select & crop a profile picture
+- 📸 Capture or choose multiple images for a gallery/post
+- 🎥 Pick single video from camera or gallery
+- 🔐 Handle **limited access** permissions gracefully
 
 ---
 
@@ -126,6 +156,15 @@ Add `UCropActivity` to your `AndroidManifest.xml`:
 ```
 
 > ✅ Android embedding v2 required
+
+> ℹ️ If you enable cropping and build a release APK/AAB (R8/minify), UCrop may reference OkHttp classes. Add these dependencies to your app’s `build.gradle(.kts)` to avoid missing-class errors (only needed when cropping on Android):
+
+```kts
+dependencies {
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okio:okio:3.6.0")
+}
+```
 
 ### 🍏 iOS
 
@@ -149,9 +188,9 @@ Add **cropperjs** to `web/index.html`:
 
 When the user grants **limited access**, the picker automatically shows a native-like dialog with options:
 
-* 📁 **Manage Selection** (iOS only)
-* ⚙️ **Open Settings** (iOS/macOS/Android)
-* 🕓 Auto-dismisses after interaction
+- 📁 **Manage Selection** (iOS only)
+- ⚙️ **Open Settings** (iOS/macOS/Android)
+- 🕓 Auto-dismisses after interaction
 
 ---
 
@@ -219,6 +258,8 @@ Configuration options for image/video picking operations.
 | `settingsButtonLabel`    | `String?`     | Label for the confirm button.                                                  |
 | `cancelButtonLabel`      | `String?`     | Label for the cancel button.                                                   |
 | `wantToCrop`             | `bool`        | Enable crop flow (Android/iOS/Web only, single image only).                    |
+| `themeBrightness`        | `Brightness?` | Override theme for limited sheet & cropper (`light`/`dark`).                   |
+| `primaryColor`           | `Color?`      | Primary accent color for limited sheet & cropper (e.g., blue).                 |
 | `logTag`                 | `String?`     | Optional debug tag for internal logging.                                       |
 
 ---

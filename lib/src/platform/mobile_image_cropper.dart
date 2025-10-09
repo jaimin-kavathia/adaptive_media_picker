@@ -10,6 +10,8 @@ class BackendImageCropper {
     BuildContext? context,
     String compressFormat = 'jpg',
     int compressQuality = 100,
+    Brightness? themeBrightness,
+    Color? primaryColor,
   }) async {
     try {
       final ImageCompressFormat format = compressFormat == 'png'
@@ -20,7 +22,10 @@ class BackendImageCropper {
         sourcePath: sourcePath,
         compressFormat: format,
         compressQuality: compressQuality,
-        uiSettings: _getMobileUiSettings(),
+        uiSettings: _getMobileUiSettings(
+          themeBrightness: themeBrightness,
+          primaryColor: primaryColor,
+        ),
       );
 
       return cropped?.path;
@@ -31,18 +36,47 @@ class BackendImageCropper {
   }
 
   /// Get mobile-specific UI settings for the image cropper.
-  static List<PlatformUiSettings> _getMobileUiSettings() {
+  static List<PlatformUiSettings> _getMobileUiSettings({
+    Brightness? themeBrightness,
+    Color? primaryColor,
+  }) {
+    final Brightness brightness = themeBrightness ?? Brightness.light;
+    final bool isDark = brightness == Brightness.dark;
+    // Primary brand color
+    final Color primary =
+        primaryColor ?? (isDark ? Colors.blueAccent : Colors.blue);
+    // Surfaces and text colors
+    final Color surface = isDark ? const Color(0xFF121212) : Colors.white;
+    final Color onSurface = isDark ? Colors.white : Colors.black;
+    // Dim and frame/grid accents
+    final Color dimmed = isDark ? Colors.black54 : Colors.black26;
+    final Color frameColor = primary.withValues(alpha: 0.9);
+    final Color gridColor = isDark ? Colors.white70 : Colors.black45;
     if (defaultTargetPlatform == TargetPlatform.android) {
       return [
         AndroidUiSettings(
           toolbarTitle: 'Cropper',
-          toolbarColor: Colors.deepOrange,
-          toolbarWidgetColor: Colors.white,
+          toolbarColor: primary,
+          toolbarWidgetColor:
+              onSurface.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+          backgroundColor: surface,
+          activeControlsWidgetColor: primary,
+          dimmedLayerColor: dimmed,
+          cropFrameColor: frameColor,
+          cropGridColor: gridColor,
+          cropFrameStrokeWidth: 2,
+          cropGridRowCount: 3,
+          cropGridColumnCount: 3,
+          cropGridStrokeWidth: 1,
+          showCropGrid: true,
+          statusBarLight: !isDark,
+          navBarLight: !isDark,
           initAspectRatio: CropAspectRatioPreset.square,
           lockAspectRatio: false,
-          aspectRatioPresets: [
+          aspectRatioPresets: const [
             CropAspectRatioPreset.original,
             CropAspectRatioPreset.square,
+            CropAspectRatioPreset.ratio3x2,
             CropAspectRatioPreset.ratio4x3,
             CropAspectRatioPreset.ratio16x9,
           ],

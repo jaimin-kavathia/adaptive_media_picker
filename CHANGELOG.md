@@ -1,3 +1,19 @@
+## 0.0.7 — 2025-10-09
+
+Theming support and example toggle.
+
+- Options
+  - Added `PickOptions.themeBrightness` and `PickOptions.primaryColor` to control UI theme for the limited-access sheet and cropper
+- Limited-access UI
+  - Bottom sheet now uses app theme by default; can be overridden via `PickOptions`
+- Cropping (Android/iOS/Web)
+  - Android: `AndroidUiSettings` colors now derive from theme (toolbar, controls, dim layer, grid/frame)
+  - Web: forwards theme context; respects app theme for dialog/page
+- Example
+  - Added light/dark theme switch and wired theme overrides into picker calls
+- Docs
+  - README updated with theming section and usage
+
 ## 0.0.6 — 2025-10-06
 
 Non-breaking DX improvements: typed errors and richer result metadata.

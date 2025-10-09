@@ -8,6 +8,8 @@ class PlatformImageCropper {
     BuildContext? context,
     String compressFormat = 'jpg',
     int compressQuality = 100,
+    dynamic themeBrightness,
+    dynamic primaryColor,
   }) async {
     return null;
   }
