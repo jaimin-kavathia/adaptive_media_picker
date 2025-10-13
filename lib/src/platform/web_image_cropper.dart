@@ -26,8 +26,9 @@ class BackendImageCropper {
     }
 
     try {
-      final ImageCompressFormat format =
-          compressFormat == 'png' ? ImageCompressFormat.png : ImageCompressFormat.jpg;
+      final ImageCompressFormat format = compressFormat == 'png'
+          ? ImageCompressFormat.png
+          : ImageCompressFormat.jpg;
 
       debugPrint(
           'Starting web image crop: sourcePath=$sourcePath, format=$compressFormat, quality=$compressQuality');

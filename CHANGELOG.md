@@ -1,3 +1,11 @@
+## 0.0.9 — 2025-10-13
+
+Dart formatting only (no functional changes).
+
+- Formatting
+  - Ran `dart format` with default settings across `lib/`, `example/`, and `test/`
+  - Ensures pana/pub.dev formatter compliance
+
 ## 0.0.8 — 2025-01-13
 
 Web image cropper bug fixes and improvements.

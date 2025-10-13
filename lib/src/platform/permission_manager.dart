@@ -52,7 +52,8 @@ class PermissionManager {
       if (mediaType == MediaType.video) {
         mic = await Permission.microphone.request();
       }
-      final permanentlyDenied = cam.isPermanentlyDenied || (mic?.isPermanentlyDenied ?? false);
+      final permanentlyDenied =
+          cam.isPermanentlyDenied || (mic?.isPermanentlyDenied ?? false);
       if (cam.isGranted && (mic == null || mic.isGranted)) {
         return PermissionResolution.grantedFull();
       }
@@ -72,14 +73,15 @@ class PermissionManager {
         if (mediaType == MediaType.video) {
           videosStatus = await Permission.videos.request();
         }
-        final bool permanentlyDenied =
-            photosStatus.isPermanentlyDenied || (videosStatus?.isPermanentlyDenied ?? false);
+        final bool permanentlyDenied = photosStatus.isPermanentlyDenied ||
+            (videosStatus?.isPermanentlyDenied ?? false);
         if (permanentlyDenied) {
           return PermissionResolution.denied(permanentlyDenied: true);
         }
 
         // Get albums (only images)
-        final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
+        final List<AssetPathEntity> albums =
+            await PhotoManager.getAssetPathList(
           onlyAll: true,
           type: RequestType.all,
         );
@@ -93,25 +95,30 @@ class PermissionManager {
           final validImages = assets
               .where(
                 (asset) =>
-                    asset.type == AssetType.image && isValidImageExtension(asset.title ?? ''),
+                    asset.type == AssetType.image &&
+                    isValidImageExtension(asset.title ?? ''),
               )
               .toList();
 
           final validVideos = assets
               .where(
                 (asset) =>
-                    asset.type == AssetType.video && isValidVideoExtension(asset.title ?? ''),
+                    asset.type == AssetType.video &&
+                    isValidVideoExtension(asset.title ?? ''),
               )
               .toList();
 
           // If either permission is limited, treat as limited
-          final bool isLimited = (mediaType == MediaType.image ? validImages.isNotEmpty : false) ||
+          final bool isLimited = (mediaType == MediaType.image
+                  ? validImages.isNotEmpty
+                  : false) ||
               (mediaType == MediaType.video ? validVideos.isNotEmpty : false);
           if (isLimited) return PermissionResolution.grantedLimited();
         }
 
         // Otherwise, granted (full)
-        if (photosStatus.isGranted && (videosStatus == null || videosStatus.isGranted)) {
+        if (photosStatus.isGranted &&
+            (videosStatus == null || videosStatus.isGranted)) {
           return PermissionResolution.grantedFull();
         }
 
@@ -136,7 +143,9 @@ class PermissionManager {
         return PermissionResolution.denied();
       }
       final bool isLimited = await Permission.photos.isLimited;
-      return isLimited ? PermissionResolution.grantedLimited() : PermissionResolution.grantedFull();
+      return isLimited
+          ? PermissionResolution.grantedLimited()
+          : PermissionResolution.grantedFull();
     }
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
