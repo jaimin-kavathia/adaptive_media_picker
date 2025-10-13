@@ -1,6 +1,6 @@
 name: adaptive_media_picker
 description: "Adaptive Flutter media picker for images & videos with smart permissions, limited access UI, and cross-platform support (Android, iOS, Web, Desktop)."
-version: 0.0.7
+version: 0.0.8
 repository: https://github.com/jaimin-kavathia/adaptive_media_picker
 issue_tracker: https://github.com/jaimin-kavathia/adaptive_media_picker/issues
 documentation: https://pub.dev/documentation/adaptive_media_picker/latest/

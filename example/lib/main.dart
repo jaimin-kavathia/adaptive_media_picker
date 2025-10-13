@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:adaptive_media_picker/adaptive_media_picker.dart';
-import 'package:flutter/foundation.dart'
-    show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 
 // This example demonstrates common usage patterns for AdaptiveMediaPicker:
 // - Single image from gallery
@@ -26,17 +25,11 @@ class _ExampleAppState extends State<ExampleApp> {
   @override
   Widget build(BuildContext context) {
     final ThemeData lightTheme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.blue,
-        brightness: Brightness.light,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.light),
       useMaterial3: true,
     );
     final ThemeData darkTheme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.blue,
-        brightness: Brightness.dark,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.dark),
       useMaterial3: true,
     );
     return MaterialApp(
@@ -54,11 +47,7 @@ class _ExampleAppState extends State<ExampleApp> {
 }
 
 class ExampleHomePage extends StatefulWidget {
-  const ExampleHomePage({
-    super.key,
-    required this.darkMode,
-    required this.onToggleTheme,
-  });
+  const ExampleHomePage({super.key, required this.darkMode, required this.onToggleTheme});
 
   final bool darkMode;
   final VoidCallback onToggleTheme;
@@ -197,8 +186,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final cameraDisabled =
-        _isDesktop; // Desktop camera not supported without a delegate
+    final cameraDisabled = _isDesktop; // Desktop camera not supported without a delegate
 
     final Color onSurface = Theme.of(context).colorScheme.onSurface;
 
@@ -209,10 +197,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
           Row(
             children: [
               Icon(widget.darkMode ? Icons.dark_mode : Icons.light_mode),
-              Switch(
-                value: widget.darkMode,
-                onChanged: (_) => widget.onToggleTheme(),
-              ),
+              Switch(value: widget.darkMode, onChanged: (_) => widget.onToggleTheme()),
             ],
           ),
           const SizedBox(width: 8),
@@ -227,13 +212,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               runSpacing: 12,
               children: [
                 ElevatedButton(
-                  onPressed: () =>
-                      _runPickSingleImage(source: ImageSource.gallery),
+                  onPressed: () => _runPickSingleImage(source: ImageSource.gallery),
                   child: const Text('Pick image (gallery)'),
                 ),
                 ElevatedButton(
-                  onPressed: () =>
-                      _runPickSingleImageCropped(source: ImageSource.gallery),
+                  onPressed: () => _runPickSingleImageCropped(source: ImageSource.gallery),
                   child: const Text('Pick image (gallery, crop)'),
                 ),
                 ElevatedButton(
@@ -266,10 +249,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Note: On desktop, camera capture is not supported in this package. The call falls back to gallery.',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: onSurface,
-                  ),
+                  style: TextStyle(fontStyle: FontStyle.italic, color: onSurface),
                 ),
               ),
             ),

@@ -11,10 +11,8 @@ import 'stub/image_cropper_stub.dart'
     if (dart.library.io) 'platform/image_cropper_impl.dart'
     if (dart.library.html) 'platform/image_cropper_impl.dart';
 
-import 'stub/limited_access_picker_stub.dart'
-    if (dart.library.io) 'ui/limited_access_picker.dart';
-import 'stub/permission_manager_stub.dart'
-    if (dart.library.io) 'platform/permission_manager.dart';
+import 'stub/limited_access_picker_stub.dart' if (dart.library.io) 'ui/limited_access_picker.dart';
+import 'stub/permission_manager_stub.dart' if (dart.library.io) 'platform/permission_manager.dart';
 
 import 'core/models.dart';
 
@@ -114,9 +112,7 @@ class AdaptiveMediaPicker {
       if (wantsVideo) {
         final XFile? video = await _picker.pickVideo(source: effectiveSource);
         return PickResultSingle(
-          item: video == null
-              ? null
-              : PickedMedia(path: video.path, mimeType: null),
+          item: video == null ? null : PickedMedia(path: video.path, mimeType: null),
           permissionResolution: PermissionResolution.grantedFull(),
           error: video == null ? PickError.canceled : null,
         );
@@ -162,9 +158,8 @@ class AdaptiveMediaPicker {
           primaryColor: options.primaryColor,
         );
         final String path = croppedPath ?? image.path;
-        final Size? finalSize = croppedPath == null
-            ? originalSize
-            : await _computeImageSizeFromPath(path);
+        final Size? finalSize =
+            croppedPath == null ? originalSize : await _computeImageSizeFromPath(path);
         return PickResultSingle(
           item: PickedMedia(path: path, mimeType: null),
           permissionResolution: PermissionResolution.grantedFull(),
@@ -188,8 +183,7 @@ class AdaptiveMediaPicker {
       );
     }
 
-    final PermissionResolution permission =
-        await _permissionManager.ensureMediaPermission(
+    final PermissionResolution permission = await _permissionManager.ensureMediaPermission(
       source: effectiveSource,
       mediaType: wantsVideo ? MediaType.video : MediaType.image,
     );
@@ -347,9 +341,8 @@ class AdaptiveMediaPicker {
         primaryColor: options.primaryColor,
       );
       final String path = croppedPath ?? image.path;
-      final Size? finalSize = croppedPath == null
-          ? originalSize
-          : await _computeImageSizeFromPath(path);
+      final Size? finalSize =
+          croppedPath == null ? originalSize : await _computeImageSizeFromPath(path);
       return PickResultSingle(
         item: PickedMedia(path: path, mimeType: null),
         permissionResolution: permission,
@@ -417,9 +410,8 @@ class AdaptiveMediaPicker {
           imageQuality: options.imageQuality,
           limit: options.maxImages,
         );
-        List<PickedMedia> items = images
-            .map((x) => PickedMedia(path: x.path, mimeType: null))
-            .toList();
+        List<PickedMedia> items =
+            images.map((x) => PickedMedia(path: x.path, mimeType: null)).toList();
         if (options.maxImages != null && items.length > options.maxImages!) {
           items = items.take(options.maxImages!).toList();
         }
@@ -435,17 +427,15 @@ class AdaptiveMediaPicker {
         maxWidth: options.maxWidth?.toDouble(),
         maxHeight: options.maxHeight?.toDouble(),
       );
-      final items = single == null
-          ? <PickedMedia>[]
-          : [PickedMedia(path: single.path, mimeType: null)];
+      final items =
+          single == null ? <PickedMedia>[] : [PickedMedia(path: single.path, mimeType: null)];
       return PickResultMultiple(
         items: items,
         permissionResolution: PermissionResolution.grantedFull(),
       );
     }
 
-    final PermissionResolution permission =
-        await _permissionManager.ensureMediaPermission(
+    final PermissionResolution permission = await _permissionManager.ensureMediaPermission(
       source: effectiveSource,
       mediaType: MediaType.image,
     );
@@ -520,9 +510,8 @@ class AdaptiveMediaPicker {
           imageQuality: options.imageQuality,
           limit: options.maxImages,
         );
-        List<PickedMedia> items = images
-            .map((x) => PickedMedia(path: x.path, mimeType: null))
-            .toList();
+        List<PickedMedia> items =
+            images.map((x) => PickedMedia(path: x.path, mimeType: null)).toList();
         if (options.maxImages != null && items.length > options.maxImages!) {
           items = items.take(options.maxImages!).toList();
         }
@@ -582,9 +571,7 @@ class AdaptiveMediaPicker {
       maxWidth: options.maxWidth?.toDouble(),
       maxHeight: options.maxHeight?.toDouble(),
     );
-    final items = image == null
-        ? <PickedMedia>[]
-        : [PickedMedia(path: image.path, mimeType: null)];
+    final items = image == null ? <PickedMedia>[] : [PickedMedia(path: image.path, mimeType: null)];
     return PickResultMultiple(items: items, permissionResolution: permission);
   }
 

@@ -27,10 +27,7 @@ class LimitedAccessPicker extends StatefulWidget {
 
   /// Creates a [LimitedAccessPicker]. Prefer using [LimitedAccessPicker.show].
   const LimitedAccessPicker(
-      {super.key,
-      this.allowMultiple = false,
-      this.maxImages,
-      this.mediaType = MediaType.image});
+      {super.key, this.allowMultiple = false, this.maxImages, this.mediaType = MediaType.image});
 
   /// Presents the limited-access picker as a modal bottom sheet and returns
   /// selected assets, or `null` if dismissed.
@@ -64,17 +61,15 @@ class LimitedAccessPicker extends StatefulWidget {
       isScrollControlled: true,
       backgroundColor: themed.colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+        borderRadius:
+            BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
       ),
       builder: (ctx) => Theme(
         data: themed,
         child: SizedBox(
           height: MediaQuery.of(ctx).size.height * 0.85,
           child: LimitedAccessPicker(
-              allowMultiple: allowMultiple,
-              maxImages: maxImages,
-              mediaType: mediaType),
+              allowMultiple: allowMultiple, maxImages: maxImages, mediaType: mediaType),
         ),
       ),
     );
@@ -97,14 +92,12 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
   }
 
   Future<void> _loadAssets() async {
-    final RequestType requestType = widget.mediaType == MediaType.video
-        ? RequestType.video
-        : RequestType.image;
+    final RequestType requestType =
+        widget.mediaType == MediaType.video ? RequestType.video : RequestType.image;
     final List<AssetPathEntity> albums =
         await PhotoManager.getAssetPathList(onlyAll: true, type: requestType);
     if (albums.isNotEmpty) {
-      final List<AssetEntity> assets =
-          await albums.first.getAssetListRange(start: 0, end: 500);
+      final List<AssetEntity> assets = await albums.first.getAssetListRange(start: 0, end: 500);
       final filtered = assets
           .where((a) => widget.mediaType == MediaType.video
               ? a.type == AssetType.video
@@ -129,8 +122,7 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
   Future<void> _promptManageLimited(RequestType type) async {
     final isVideo = widget.mediaType == MediaType.video;
     final bool isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-    final bool isMacOS =
-        !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
+    final bool isMacOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
     final platformMessage = isIOS
         ? 'Go to: Settings > App > Photos > Limited Access > Select ${isVideo ? 'videos' : 'images'} to share with this app.'
         : isMacOS
@@ -152,8 +144,7 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
               child: const Text('Cancel')),
           if (isIOS || isMacOS)
             TextButton(
-              onPressed: () =>
-                  Navigator.of(ctx).pop(_LimitedAction.manageLimited),
+              onPressed: () => Navigator.of(ctx).pop(_LimitedAction.manageLimited),
               child: const Text('Manage Selection'),
             ),
           TextButton(
@@ -210,15 +201,12 @@ class _LimitedAccessPickerState extends State<LimitedAccessPicker> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.mediaType == MediaType.video
-            ? 'Select videos'
-            : 'Select images'),
+        title: Text(widget.mediaType == MediaType.video ? 'Select videos' : 'Select images'),
         actions: [
           if (widget.allowMultiple)
             TextButton(
-              onPressed: _selected.isEmpty
-                  ? null
-                  : () => Navigator.of(context).pop(_selected.toList()),
+              onPressed:
+                  _selected.isEmpty ? null : () => Navigator.of(context).pop(_selected.toList()),
               child: const Text('Done'),
             ),
         ],
@@ -260,10 +248,7 @@ class _AssetTile extends StatelessWidget {
   final Map<String, Uint8List?> cache;
 
   const _AssetTile(
-      {required this.asset,
-      required this.selected,
-      required this.onTap,
-      required this.cache});
+      {required this.asset, required this.selected, required this.onTap, required this.cache});
 
   @override
   Widget build(BuildContext context) {
@@ -275,16 +260,13 @@ class _AssetTile extends StatelessWidget {
           _Thumb(asset: asset, cache: cache),
           if (asset.type == AssetType.video)
             const Positioned(
-                bottom: 6,
-                left: 6,
-                child: Icon(Icons.videocam, size: 16, color: Colors.white)),
+                bottom: 6, left: 6, child: Icon(Icons.videocam, size: 16, color: Colors.white)),
           if (selected)
             Positioned(
               top: 6,
               right: 6,
               child: Container(
-                decoration: const BoxDecoration(
-                    color: Colors.blue, shape: BoxShape.circle),
+                decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
                 padding: const EdgeInsets.all(4),
                 child: const Icon(Icons.check, size: 14, color: Colors.white),
               ),
@@ -332,7 +314,6 @@ class _ThumbState extends State<_Thumb> {
       return const ColoredBox(color: Color(0xFFE0E0E0));
     }
     return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.memory(_data!, fit: BoxFit.cover));
+        borderRadius: BorderRadius.circular(8), child: Image.memory(_data!, fit: BoxFit.cover));
   }
 }

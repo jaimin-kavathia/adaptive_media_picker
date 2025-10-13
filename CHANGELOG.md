@@ -1,3 +1,12 @@
+## 0.0.8 — 2025-01-13
+
+Web image cropper bug fixes and improvements.
+
+- Web Image Cropper
+  - Fixed "Type 'Brightness' not found" error
+  - Added input validation and better error handling
+  - Enhanced debugging with detailed logging
+
 ## 0.0.7 — 2025-10-09
 
 Theming support and example toggle.

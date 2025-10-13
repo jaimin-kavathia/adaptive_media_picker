@@ -12,6 +12,10 @@
   <em>Handles limited & full access gracefully — with native-like UX on Android, iOS, Web, and Desktop.</em>
 </p>
 
+<p align="center">
+  <img src="assets/images/adaptive_media_picker.png" alt="Adaptive Media Picker" width="100%">
+</p>
+
 ---
 
 ## ✨ Why Adaptive Media Picker?

@@ -5,11 +5,7 @@ import 'package:adaptive_media_picker/src/ui/limited_access_picker.dart';
 void main() {
   testWidgets('LimitedAccessPicker shows scaffold structure', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: LimitedAccessPicker(allowMultiple: true, maxImages: 3),
-        ),
-      ),
+      MaterialApp(home: Scaffold(body: LimitedAccessPicker(allowMultiple: true, maxImages: 3))),
     );
 
     // AppBar title should be for images by default

@@ -203,8 +203,7 @@ class PermissionResolution {
     required this.permanentlyDenied,
   });
 
-  factory PermissionResolution.denied({bool permanentlyDenied = false}) =>
-      PermissionResolution(
+  factory PermissionResolution.denied({bool permanentlyDenied = false}) => PermissionResolution(
         granted: false,
         limited: false,
         permanentlyDenied: permanentlyDenied,

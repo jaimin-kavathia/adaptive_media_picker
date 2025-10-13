@@ -14,9 +14,8 @@ class BackendImageCropper {
     Color? primaryColor,
   }) async {
     try {
-      final ImageCompressFormat format = compressFormat == 'png'
-          ? ImageCompressFormat.png
-          : ImageCompressFormat.jpg;
+      final ImageCompressFormat format =
+          compressFormat == 'png' ? ImageCompressFormat.png : ImageCompressFormat.jpg;
 
       final CroppedFile? cropped = await ImageCropper().cropImage(
         sourcePath: sourcePath,
@@ -43,8 +42,7 @@ class BackendImageCropper {
     final Brightness brightness = themeBrightness ?? Brightness.light;
     final bool isDark = brightness == Brightness.dark;
     // Primary brand color
-    final Color primary =
-        primaryColor ?? (isDark ? Colors.blueAccent : Colors.blue);
+    final Color primary = primaryColor ?? (isDark ? Colors.blueAccent : Colors.blue);
     // Surfaces and text colors
     final Color surface = isDark ? const Color(0xFF121212) : Colors.white;
     final Color onSurface = isDark ? Colors.white : Colors.black;
@@ -57,8 +55,7 @@ class BackendImageCropper {
         AndroidUiSettings(
           toolbarTitle: 'Cropper',
           toolbarColor: primary,
-          toolbarWidgetColor:
-              onSurface.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+          toolbarWidgetColor: onSurface.computeLuminance() > 0.5 ? Colors.black : Colors.white,
           backgroundColor: surface,
           activeControlsWidgetColor: primary,
           dimmedLayerColor: dimmed,
