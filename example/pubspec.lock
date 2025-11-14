@@ -4,11 +4,10 @@ packages:
   adaptive_media_picker:
     dependency: "direct main"
     description:
-      name: adaptive_media_picker
-      sha256: "57677631d8798e7c9e0e32e5bc6355001e4e0d4e15748221f25ef753c9de3eca"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.9"
+      path: ".."
+      relative: true
+    source: path
+    version: "0.0.10"
   async:
     dependency: transitive
     description:
@@ -413,6 +412,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  smart_permission:
+    dependency: transitive
+    description:
+      name: smart_permission
+      sha256: ac61bc0c72c4f28427199a8f6843db3c6cebeab7eb01566caaa1d4dee4a31e70
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.3"
   source_span:
     dependency: transitive
     description:

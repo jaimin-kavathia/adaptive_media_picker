@@ -10,7 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  adaptive_media_picker: ^0.0.9
+  adaptive_media_picker:
+    path: ../
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
