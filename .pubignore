@@ -3,7 +3,7 @@
 .idea/
 *.iml
 build/
-example/
+example/build/
 *.lock
 coverage/
 install.sh
