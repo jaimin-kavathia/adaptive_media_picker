@@ -80,26 +80,26 @@ final picker = AdaptiveMediaPicker();
 
 // Pick a single image
 final singleImage = await picker.pickImage(
-  context: context,
-  options: const PickOptions(source: ImageSource.gallery, imageQuality: 80),
+context: context,
+options: const PickOptions(source: ImageSource.gallery, imageQuality: 80),
 );
 
 // Pick and crop
 final croppedImage = await picker.pickImage(
-  context: context,
-  options: const PickOptions(source: ImageSource.gallery, wantToCrop: true),
+context: context,
+options: const PickOptions(source: ImageSource.gallery, wantToCrop: true),
 );
 
 // Pick multiple images
 final multiImages = await picker.pickMultiImage(
-  context: context,
-  options: const PickOptions(maxImages: 5, source: ImageSource.gallery),
+context: context,
+options: const PickOptions(maxImages: 5, source: ImageSource.gallery),
 );
 
 // Pick a single video
 final singleVideo = await picker.pickVideo(
-  context: context,
-  options: const PickOptions(source: ImageSource.gallery),
+context: context,
+options: const PickOptions(source: ImageSource.gallery),
 );
 ```
 
@@ -118,12 +118,12 @@ Example:
 
 ```dart
 final result = await picker.pickImage(
-  context: context,
-  options: const PickOptions(
-    wantToCrop: true,
-    themeBrightness: Brightness.dark,
-    primaryColor: Colors.blue,
-  ),
+context: context,
+options: const PickOptions(
+wantToCrop: true,
+themeBrightness: Brightness.dark,
+primaryColor: Colors.blue,
+),
 );
 ```
 
@@ -154,9 +154,9 @@ Add `UCropActivity` to your `AndroidManifest.xml`:
 
 ```xml
 <activity
-  android:name="com.yalantis.ucrop.UCropActivity"
-  android:screenOrientation="portrait"
-  android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+        android:name="com.yalantis.ucrop.UCropActivity"
+        android:screenOrientation="portrait"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 ```
 
 > ✅ Android embedding v2 required
@@ -165,8 +165,8 @@ Add `UCropActivity` to your `AndroidManifest.xml`:
 
 ```kts
 dependencies {
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okio:okio:3.6.0")
+  implementation("com.squareup.okhttp3:okhttp:4.12.0")
+  implementation("com.squareup.okio:okio:3.6.0")
 }
 ```
 
@@ -180,8 +180,8 @@ Add **cropperjs** to `web/index.html`:
 
 ```html
 <link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.css"
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.css"
 />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 ```
@@ -222,6 +222,35 @@ When the user grants **limited access**, the picker automatically shows a native
 <key>NSPhotoLibraryAddUsageDescription</key>
 <string>This app may save images/videos to your photo library.</string>
 ```
+
+To ensure your app works smoothly with media picking and cropping on iOS, you'll need to configure the required permissions in your `Podfile` for Flutter.
+
+**Add the following code to the `post_install` section of your `Podfile`:**
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+      # Enable only the permissions you need in your app
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_CAMERA=1',
+        'PERMISSION_MICROPHONE=1',
+        'PERMISSION_PHOTOS=1',
+        # Examples of other permissions you might enable:
+        # 'PERMISSION_NOTIFICATIONS=1',
+        # 'PERMISSION_MEDIA_LIBRARY=1',
+        # 'PERMISSION_BLUETOOTH=1',
+        # 'PERMISSION_APP_TRACKING_TRANSPARENCY=1',
+      ]
+    end
+  end
+end
+```
+
+This will make sure the necessary permissions for Camera, Microphone, and Photos are enabled in your iOS project, allowing the picker to function properly.
 
 ### 💻 macOS
 

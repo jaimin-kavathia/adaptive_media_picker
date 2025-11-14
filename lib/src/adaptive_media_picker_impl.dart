@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:smart_permission/smart_permission.dart';
 import 'dart:ui' as ui;
 
 // Conditional imports for image cropping
@@ -192,6 +192,7 @@ class AdaptiveMediaPicker {
         await _permissionManager.ensureMediaPermission(
       source: effectiveSource,
       mediaType: wantsVideo ? MediaType.video : MediaType.image,
+      context: context,
     );
 
     if (!permission.granted) {
@@ -448,6 +449,7 @@ class AdaptiveMediaPicker {
         await _permissionManager.ensureMediaPermission(
       source: effectiveSource,
       mediaType: MediaType.image,
+      context: context,
     );
     if (!permission.granted) {
       if (permission.permanentlyDenied && options.showOpenSettingsDialog) {

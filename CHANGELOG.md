@@ -1,3 +1,23 @@
+## 0.0.10 — 2025-01-XX
+
+Permission handling migration and dependency updates.
+
+- Breaking Changes
+  - Replaced `permission_handler` with `smart_permission` package
+  - `PermissionManager.ensureMediaPermission` now requires `BuildContext?` parameter
+- Dependencies
+  - Updated `device_info_plus` from `^12.1.0` to `^12.2.0`
+  - Updated `image_picker` from `^1.2.0` to `^1.2.1`
+  - Replaced `permission_handler: ^12.0.1` with `smart_permission: ^0.0.3`
+- Permission Manager
+  - Migrated to `smart_permission` API for better permission handling UX
+  - Added context-aware permission requests with proper mounted checks
+  - Improved Android granular media permissions handling (API 33+)
+  - Enhanced iOS Photos permission flow with limited access detection
+- Documentation
+  - Added iOS Podfile configuration section with permission setup instructions
+  - Updated README with Podfile `post_install` configuration for Camera, Microphone, and Photos permissions
+
 ## 0.0.9 — 2025-10-13
 
 Dart formatting only (no functional changes).

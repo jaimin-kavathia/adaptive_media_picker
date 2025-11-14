@@ -1,7 +1,8 @@
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:smart_permission/smart_permission.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../core/models.dart';
@@ -9,9 +10,9 @@ import '../core/models.dart';
 /// Handles runtime permissions for camera and media library.
 ///
 /// Platform notes:
-/// - Android: On API 33+, first prompt via `permission_handler`. If status is
-///   ambiguous, inspect `photo_manager` assets to infer limited access.
-/// - iOS: Uses `photo_manager` for read/write with limited mode handling.
+/// - Android: On API 33+, uses `smart_permission` for granular media permissions.
+///   If status is ambiguous, inspect `photo_manager` assets to infer limited access.
+/// - iOS: Uses `smart_permission` for Photos permission with limited mode handling.
 /// - Desktop (macOS/Windows/Linux): No runtime permission; relies on file
 ///   dialogs and app entitlements where applicable.
 /// Handles platform-specific permission flows for camera and media library.
@@ -29,6 +30,7 @@ class PermissionManager {
   Future<PermissionResolution> ensureMediaPermission({
     required ImageSource source,
     required MediaType mediaType,
+    BuildContext? context,
   }) async {
     if (bypassPlatformChannelsForTests) {
       return PermissionResolution.grantedFull();
@@ -47,39 +49,54 @@ class PermissionManager {
 
     // Camera permissions
     if (source == ImageSource.camera) {
-      final cam = await Permission.camera.request();
-      PermissionStatus? mic;
-      if (mediaType == MediaType.video) {
-        mic = await Permission.microphone.request();
+      if (context == null) {
+        // No context available, return denied
+        return PermissionResolution.denied();
       }
-      final permanentlyDenied =
-          cam.isPermanentlyDenied || (mic?.isPermanentlyDenied ?? false);
-      if (cam.isGranted && (mic == null || mic.isGranted)) {
+
+      // Use smart_permission for camera
+      final permissions = [Permission.camera];
+      if (mediaType == MediaType.video) {
+        permissions.add(Permission.microphone);
+      }
+
+      final result = await SmartPermission.requestMultiple(
+        context,
+        permissions: permissions,
+      );
+
+      if (result.values.every((granted) => granted)) {
         return PermissionResolution.grantedFull();
       }
-      if (permanentlyDenied) {
-        return PermissionResolution.denied(permanentlyDenied: true);
-      }
+
+      // Check if any permission is permanently denied by trying to request again
+      // This is a simplified approach - smart_permission handles the UX
       return PermissionResolution.denied();
     }
 
     // Gallery / library permissions
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      if (context == null) {
+        // No context available, return denied
+        return PermissionResolution.denied();
+      }
+
       final int sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
       if (sdkInt >= 33) {
-        // Request granular media permissions via permission_handler
-        final PermissionStatus photosStatus = await Permission.photos.request();
-        PermissionStatus? videosStatus;
+        // Request granular media permissions via smart_permission
+        final permissions = [Permission.photos];
         if (mediaType == MediaType.video) {
-          videosStatus = await Permission.videos.request();
-        }
-        final bool permanentlyDenied = photosStatus.isPermanentlyDenied ||
-            (videosStatus?.isPermanentlyDenied ?? false);
-        if (permanentlyDenied) {
-          return PermissionResolution.denied(permanentlyDenied: true);
+          permissions.add(Permission.videos);
         }
 
-        // Get albums (only images)
+        if (!context.mounted) return PermissionResolution.denied();
+
+        final result = await SmartPermission.requestMultiple(
+          context,
+          permissions: permissions,
+        );
+
+        // Get albums to check for limited access
         final List<AssetPathEntity> albums =
             await PhotoManager.getAssetPathList(
           onlyAll: true,
@@ -116,36 +133,77 @@ class PermissionManager {
           if (isLimited) return PermissionResolution.grantedLimited();
         }
 
-        // Otherwise, granted (full)
-        if (photosStatus.isGranted &&
-            (videosStatus == null || videosStatus.isGranted)) {
+        // Check if all permissions granted
+        if (result.values.every((granted) => granted)) {
           return PermissionResolution.grantedFull();
         }
 
         return PermissionResolution.denied();
       } else {
-        final storage = await Permission.storage.request();
-        if (storage.isGranted) return PermissionResolution.grantedFull();
-        if (storage.isPermanentlyDenied) {
-          return PermissionResolution.denied(permanentlyDenied: true);
-        }
+        // Android < 33: use storage permission
+        if (!context.mounted) return PermissionResolution.denied();
+
+        final result = await SmartPermission.request(
+          context,
+          permission: Permission.storage,
+        );
+        if (result) return PermissionResolution.grantedFull();
         return PermissionResolution.denied();
       }
     }
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      // Use permission_handler to reflect iOS Photos limited/full accurately
-      final PermissionStatus status = await Permission.photos.request();
-      if (status.isPermanentlyDenied) {
-        return PermissionResolution.denied(permanentlyDenied: true);
-      }
-      if (!status.isGranted && !status.isLimited) {
+      if (context == null) {
+        // No context available, return denied
         return PermissionResolution.denied();
       }
-      final bool isLimited = await Permission.photos.isLimited;
-      return isLimited
-          ? PermissionResolution.grantedLimited()
-          : PermissionResolution.grantedFull();
+
+      // Use smart_permission for iOS Photos permission
+      final result = await SmartPermission.request(
+        context,
+        permission: Permission.photos,
+      );
+
+      if (!result) {
+        return PermissionResolution.denied();
+      }
+
+      // Check if limited access using photo_manager
+      final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
+        onlyAll: true,
+        type: RequestType.all,
+      );
+
+      if (albums.isNotEmpty) {
+        final List<AssetEntity> assets = await albums.first.getAssetListRange(
+          start: 0,
+          end: 100,
+        );
+
+        final validImages = assets
+            .where(
+              (asset) =>
+                  asset.type == AssetType.image &&
+                  isValidImageExtension(asset.title ?? ''),
+            )
+            .toList();
+
+        final validVideos = assets
+            .where(
+              (asset) =>
+                  asset.type == AssetType.video &&
+                  isValidVideoExtension(asset.title ?? ''),
+            )
+            .toList();
+
+        // If we have limited access (some assets but not all)
+        final bool isLimited =
+            (mediaType == MediaType.image ? validImages.isNotEmpty : false) ||
+                (mediaType == MediaType.video ? validVideos.isNotEmpty : false);
+        if (isLimited) return PermissionResolution.grantedLimited();
+      }
+
+      return PermissionResolution.grantedFull();
     }
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.macOS) {
