@@ -3,7 +3,7 @@
 .idea/
 *.iml
 build/
-example/build/
+example/
 *.lock
 
 # Old moved files (kept in repo history but not published)
