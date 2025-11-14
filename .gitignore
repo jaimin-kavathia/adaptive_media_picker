@@ -56,10 +56,6 @@ doc/api/
 /coverage/
 
 # FVM (Flutter Version Management)
-.fvm/flutter_sdk
-.fvm/versions/
-.fvm/release
-.fvm/version
 
 # Android
 **/.gradle/
@@ -75,3 +71,6 @@ doc/api/
 **/.generated/
 **/xcuserdata/
 **/.last_build_id
+
+# FVM Version Cache
+.fvm/
