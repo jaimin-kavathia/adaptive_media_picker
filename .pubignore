@@ -5,6 +5,8 @@
 build/
 example/
 *.lock
+coverage/
+install.sh
 
 # Old moved files (kept in repo history but not published)
 lib/src/limited_access_picker.dart

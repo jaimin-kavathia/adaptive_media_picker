@@ -1,5 +1,6 @@
 name: example
 description: "A new Flutter project."
+publish_to: "none" # This package is not intended to be published.
 
 version: 1.0.0+1
 
