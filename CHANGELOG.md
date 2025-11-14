@@ -1,4 +1,4 @@
-## 0.0.10 — 2025-01-XX
+## 0.0.10 — 2025-11-14
 
 Permission handling migration and dependency updates.
 
