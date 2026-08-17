@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:photo_manager/photo_manager.dart';
 import 'dart:ui' as ui;
 
 // Conditional imports for image cropping.
@@ -214,7 +213,7 @@ class AdaptiveMediaPicker {
       if (!context.mounted) {
         return PickResultSingle(item: null, permissionResolution: permission);
       }
-      final List<AssetEntity>? selected = await LimitedAccessPicker.show(
+      final selected = await LimitedAccessPicker.show(
         context: context,
         allowMultiple: false,
         maxImages: options.maxImages,
@@ -465,7 +464,7 @@ class AdaptiveMediaPicker {
           permissionResolution: permission,
         );
       }
-      final List<AssetEntity>? selected = await LimitedAccessPicker.show(
+      final selected = await LimitedAccessPicker.show(
         context: context,
         allowMultiple: true,
         maxImages: options.maxImages,
@@ -525,7 +524,7 @@ class AdaptiveMediaPicker {
             permissionResolution: permission,
           );
         }
-        final List<AssetEntity>? selected = await LimitedAccessPicker.show(
+        final selected = await LimitedAccessPicker.show(
           context: context,
           allowMultiple: true,
           maxImages: options.maxImages,

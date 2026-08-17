@@ -1,3 +1,15 @@
+## 1.0.2 — 2026-08-17
+
+WASM compatibility fix.
+
+- Removed `photo_manager` imports from web/WASM-reachable code
+  (`limited_access_picker_stub.dart` and `adaptive_media_picker_impl.dart`).
+  The stub's `LimitedAccessPicker.show` now returns `Future<List<dynamic>?>`
+  instead of naming `AssetEntity`, which transitively pulled `dart:io` into
+  web builds and made pub.dev flag the package as not WASM-compatible. The
+  native (`dart:io`) implementation is unchanged and still returns
+  `List<AssetEntity>`.
+
 ## 1.0.1 — 2026-08-17
 
 SDK constraint fix.

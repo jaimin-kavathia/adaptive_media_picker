@@ -1,7 +1,7 @@
 // LimitedAccessPicker stub
-import 'package:adaptive_media_picker/adaptive_media_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:photo_manager/photo_manager.dart';
+
+import '../core/models.dart';
 
 class LimitedAccessPicker {
   const LimitedAccessPicker({
@@ -14,7 +14,9 @@ class LimitedAccessPicker {
   final int? maxImages;
   final MediaType mediaType;
 
-  static Future<List<AssetEntity>?> show({
+  // Returns `List<dynamic>` instead of `List<AssetEntity>`: naming the
+  // photo_manager type here would pull `dart:io` into web/WASM builds.
+  static Future<List<dynamic>?> show({
     required BuildContext context,
     bool allowMultiple = false,
     int? maxImages,
