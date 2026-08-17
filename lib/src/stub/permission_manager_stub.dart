@@ -11,6 +11,10 @@ class PermissionManager {
     required ImageSource source,
     required MediaType mediaType,
     BuildContext? context,
+    String? dialogTitle,
+    String? dialogMessage,
+    String? settingsButtonLabel,
+    String? cancelButtonLabel,
   }) async {
     return PermissionResolution.grantedFull();
   }

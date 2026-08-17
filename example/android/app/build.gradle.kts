@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.example.example"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler 13 (via smart_permission 1.x) requires compileSdk 37.
+    compileSdk = maxOf(flutter.compileSdkVersion, 37)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:smart_permission/smart_permission.dart';
 import 'dart:ui' as ui;
 
-// Conditional imports for image cropping
+// Conditional imports for image cropping.
+// `dart.library.js_interop` (instead of `dart.library.html`) keeps the
+// package compatible with both the JS and WASM web runtimes.
 import 'stub/image_cropper_stub.dart'
     if (dart.library.io) 'platform/image_cropper_impl.dart'
-    if (dart.library.html) 'platform/image_cropper_impl.dart';
+    if (dart.library.js_interop) 'platform/image_cropper_impl.dart';
 
 import 'stub/limited_access_picker_stub.dart'
     if (dart.library.io) 'ui/limited_access_picker.dart';
@@ -193,26 +193,19 @@ class AdaptiveMediaPicker {
       source: effectiveSource,
       mediaType: wantsVideo ? MediaType.video : MediaType.image,
       context: context,
+      dialogTitle: options.settingsDialogTitle,
+      dialogMessage: options.settingsDialogMessage,
+      settingsButtonLabel: options.settingsButtonLabel,
+      cancelButtonLabel: options.cancelButtonLabel,
     );
 
     if (!permission.granted) {
-      if (permission.permanentlyDenied && options.showOpenSettingsDialog) {
-        if (!context.mounted) {
-          return PickResultSingle(item: null, permissionResolution: permission);
-        }
-        final bool open = await _showOpenSettingsDialog(
-          context,
-          options,
-          wantsVideo: wantsVideo,
-        );
-        if (open) {
-          await openAppSettings();
-        }
-      }
+      // The permission flow already offered the rationale and, when the
+      // permission is permanently denied, an "Open Settings" dialog.
       return PickResultSingle(
         item: null,
         permissionResolution: permission,
-        error: PickError.unknown,
+        error: PickError.permissionDenied,
       );
     }
 
@@ -359,7 +352,7 @@ class AdaptiveMediaPicker {
           originalSize: originalSize,
           finalSize: finalSize,
         ),
-        error: croppedPath == null ? null : null,
+        error: croppedPath == null ? PickError.cropCanceled : null,
       );
     }
     final Size? size = await _computeImageSizeFromXFile(image);
@@ -450,25 +443,18 @@ class AdaptiveMediaPicker {
       source: effectiveSource,
       mediaType: MediaType.image,
       context: context,
+      dialogTitle: options.settingsDialogTitle,
+      dialogMessage: options.settingsDialogMessage,
+      settingsButtonLabel: options.settingsButtonLabel,
+      cancelButtonLabel: options.cancelButtonLabel,
     );
     if (!permission.granted) {
-      if (permission.permanentlyDenied && options.showOpenSettingsDialog) {
-        if (!context.mounted) {
-          return PickResultMultiple(
-            items: const [],
-            permissionResolution: permission,
-          );
-        }
-        final bool open = await _showOpenSettingsDialog(
-          context,
-          options,
-          wantsVideo: false,
-        );
-        if (open) await openAppSettings();
-      }
+      // The permission flow already offered the rationale and, when the
+      // permission is permanently denied, an "Open Settings" dialog.
       return PickResultMultiple(
         items: const [],
         permissionResolution: permission,
+        error: PickError.permissionDenied,
       );
     }
 
@@ -588,74 +574,6 @@ class AdaptiveMediaPicker {
         ? <PickedMedia>[]
         : [PickedMedia(path: image.path, mimeType: null)];
     return PickResultMultiple(items: items, permissionResolution: permission);
-  }
-
-  Future<bool> _showOpenSettingsDialog(
-    BuildContext context,
-    PickOptions options, {
-    required bool wantsVideo,
-  }) async {
-    final bool isCamera = options.source == ImageSource.camera;
-
-    final String defaultTitle = 'Permission required';
-    String defaultMessage;
-    if (isCamera) {
-      defaultMessage = wantsVideo
-          ? 'Camera and Microphone access is required to record videos. Open Settings to grant access.'
-          : 'Camera access is required to take photos. Open Settings to grant access.';
-    } else {
-      defaultMessage = wantsVideo
-          ? 'Photos and Videos access is required to pick videos. Open Settings to grant access.'
-          : 'Photos access is required to pick images. Open Settings to grant access.';
-    }
-
-    final String title = options.settingsDialogTitle ?? defaultTitle;
-    final String message = options.settingsDialogMessage ?? defaultMessage;
-    final String settingsLabel = options.settingsButtonLabel ?? 'Open Settings';
-    final String cancelLabel = options.cancelButtonLabel ?? 'Cancel';
-
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      if (!context.mounted) return false;
-      return await showCupertinoDialog<bool>(
-            context: context,
-            builder: (ctx) => CupertinoAlertDialog(
-              title: Text(title),
-              content: Text(message),
-              actions: [
-                CupertinoDialogAction(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text(cancelLabel),
-                ),
-                CupertinoDialogAction(
-                  isDefaultAction: true,
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text(settingsLabel),
-                ),
-              ],
-            ),
-          ) ??
-          false;
-    }
-
-    if (!context.mounted) return false;
-    return await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text(cancelLabel),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: Text(settingsLabel),
-              ),
-            ],
-          ),
-        ) ??
-        false;
   }
 }
 

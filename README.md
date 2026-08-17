@@ -80,26 +80,26 @@ final picker = AdaptiveMediaPicker();
 
 // Pick a single image
 final singleImage = await picker.pickImage(
-context: context,
-options: const PickOptions(source: ImageSource.gallery, imageQuality: 80),
+  context: context,
+  options: const PickOptions(source: ImageSource.gallery, imageQuality: 80),
 );
 
 // Pick and crop
 final croppedImage = await picker.pickImage(
-context: context,
-options: const PickOptions(source: ImageSource.gallery, wantToCrop: true),
+  context: context,
+  options: const PickOptions(source: ImageSource.gallery, wantToCrop: true),
 );
 
 // Pick multiple images
 final multiImages = await picker.pickMultiImage(
-context: context,
-options: const PickOptions(maxImages: 5, source: ImageSource.gallery),
+  context: context,
+  options: const PickOptions(maxImages: 5, source: ImageSource.gallery),
 );
 
 // Pick a single video
 final singleVideo = await picker.pickVideo(
-context: context,
-options: const PickOptions(source: ImageSource.gallery),
+  context: context,
+  options: const PickOptions(source: ImageSource.gallery),
 );
 ```
 
@@ -118,12 +118,12 @@ Example:
 
 ```dart
 final result = await picker.pickImage(
-context: context,
-options: const PickOptions(
-wantToCrop: true,
-themeBrightness: Brightness.dark,
-primaryColor: Colors.blue,
-),
+  context: context,
+  options: const PickOptions(
+    wantToCrop: true,
+    themeBrightness: Brightness.dark,
+    primaryColor: Colors.blue,
+  ),
 );
 ```
 
@@ -210,6 +210,14 @@ When the user grants **limited access**, the picker automatically shows a native
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 ```
 
+> ⚠️ `permission_handler` 13 (used via `smart_permission`) requires **`compileSdk = 37`**. Flutter's default is still 36, so set it explicitly in `android/app/build.gradle(.kts)`:
+
+```kts
+android {
+    compileSdk = 37
+}
+```
+
 ### 🍎 iOS
 
 ```xml
@@ -285,11 +293,11 @@ Configuration options for image/video picking operations.
 | `maxWidth`               | `int?`        | Resize width for images when supported.                                        |
 | `maxHeight`              | `int?`        | Resize height for images when supported.                                       |
 | `source`                 | `ImageSource` | Source — `gallery` or `camera`. Falls back to gallery on web/desktop.          |
-| `showOpenSettingsDialog` | `bool`        | Show “Open Settings” dialog when permission is permanently denied.             |
-| `settingsDialogTitle`    | `String?`     | Custom title for the settings dialog.                                          |
-| `settingsDialogMessage`  | `String?`     | Custom message for the settings dialog.                                        |
-| `settingsButtonLabel`    | `String?`     | Label for the confirm button.                                                  |
-| `cancelButtonLabel`      | `String?`     | Label for the cancel button.                                                   |
+| `showOpenSettingsDialog` | `bool`        | **Deprecated.** The permission flow shows its own settings dialog.             |
+| `settingsDialogTitle`    | `String?`     | Custom title for the permission dialogs (rationale / open settings).           |
+| `settingsDialogMessage`  | `String?`     | Custom message for the permission dialogs.                                     |
+| `settingsButtonLabel`    | `String?`     | Label for the “Open Settings” button.                                          |
+| `cancelButtonLabel`      | `String?`     | Label for the cancel/deny button.                                              |
 | `wantToCrop`             | `bool`        | Enable crop flow (Android/iOS/Web only, single image only).                    |
 | `themeBrightness`        | `Brightness?` | Override theme for limited sheet & cropper (`light`/`dark`).                   |
 | `primaryColor`           | `Color?`      | Primary accent color for limited sheet & cropper (e.g., blue).                 |
@@ -329,10 +337,11 @@ Returned from `pickImage()` or `pickVideo()`.
 
 Returned from `pickMultiImage()`.
 
-| Field                  | Type                   | Description                       |
-| :--------------------- | :--------------------- | :-------------------------------- |
-| `items`                | `List<PickedMedia>`    | All picked images. Empty if none. |
-| `permissionResolution` | `PermissionResolution` | Final permission state.           |
+| Field                  | Type                   | Description                                |
+| :--------------------- | :--------------------- | :----------------------------------------- |
+| `items`                | `List<PickedMedia>`    | All picked images. Empty if none.          |
+| `permissionResolution` | `PermissionResolution` | Final permission state.                    |
+| `error`                | `PickError?`           | Indicates if operation failed or canceled. |
 
 > 💡 Use `.isEmpty` to check if no images were selected.
 
@@ -352,14 +361,15 @@ Extra info for debugging and analytics.
 
 ### ⚠️ **PickError**
 
-Typed error codes for single-pick operations.
+Typed error codes for pick operations.
 
-| Value          | Description              |
-| :------------- | :----------------------- |
-| `canceled`     | User canceled selection. |
-| `cropCanceled` | User canceled cropping.  |
-| `io`           | I/O or platform failure. |
-| `unknown`      | Unknown reason.          |
+| Value              | Description                                             |
+| :----------------- | :------------------------------------------------------ |
+| `canceled`         | User canceled selection.                                |
+| `cropCanceled`     | User canceled cropping.                                 |
+| `permissionDenied` | Permission denied (see `permissionResolution`).         |
+| `io`               | I/O or platform failure.                                |
+| `unknown`          | Unknown reason.                                         |
 
 ---
 
