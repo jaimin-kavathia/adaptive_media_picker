@@ -1,3 +1,16 @@
+## 1.0.1 — 2026-08-17
+
+SDK constraint fix.
+
+- Environment
+  - Raised minimum SDKs to Dart 3.10 / Flutter 3.38.1 — required by
+    `image_picker` 1.2.3 and `device_info_plus` 13. The previous constraints
+    (Dart 3.4 / Flutter 3.13) could not actually resolve the 1.0.0
+    dependencies.
+- CI
+  - Bumped the CI Flutter version to 3.44.9 (matching the `.fvmrc` pin) so
+    dependency resolution succeeds on CI
+
 ## 1.0.0 — 2026-08-17
 
 First stable release: dependency upgrades, accurate permission states, and
@@ -11,8 +24,6 @@ WASM compatibility.
   - Updated `image_picker` from `^1.2.1` to `^1.2.3`
   - Android apps must now build with `compileSdk = 37` (required by
     `permission_handler` 13 via `smart_permission`); see README
-  - Minimum SDKs raised to Dart 3.10 / Flutter 3.38.1 (required by
-    `image_picker` 1.2.3 and `device_info_plus` 13)
 - Permission handling
   - Migrated to `smart_permission`'s result API: limited access and
     permanently-denied states are now reported accurately by the OS instead of
