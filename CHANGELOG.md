@@ -1,3 +1,40 @@
+## 1.0.0 — 2026-08-17
+
+First stable release: dependency upgrades, accurate permission states, and
+WASM compatibility.
+
+- Dependencies
+  - Updated `smart_permission` from `^0.0.3` to `^1.0.1`
+  - Updated `image_cropper` from `^11.0.0` to `^12.2.1`
+  - Updated `device_info_plus` from `^12.2.0` to `^13.2.0`
+  - Updated `photo_manager` from `^3.7.1` to `^3.12.0`
+  - Updated `image_picker` from `^1.2.1` to `^1.2.3`
+  - Android apps must now build with `compileSdk = 37` (required by
+    `permission_handler` 13 via `smart_permission`); see README
+- Permission handling
+  - Migrated to `smart_permission`'s result API: limited access and
+    permanently-denied states are now reported accurately by the OS instead of
+    being inferred from the device's photo library contents. Full-access users
+    now get the native picker instead of the in-package limited-access sheet.
+  - `PermissionResolution.permanentlyDenied` is now populated correctly
+  - The "Open Settings" flow (dialog, opening Settings, waiting for return,
+    re-checking) is handled by `smart_permission`; the package no longer shows
+    its own duplicate settings dialog. `PickOptions.settingsDialogTitle`,
+    `settingsDialogMessage`, `settingsButtonLabel`, and `cancelButtonLabel`
+    are forwarded to those dialogs.
+  - Deprecated `PickOptions.showOpenSettingsDialog` (no longer read)
+  - Android 13+: video picks now request only `READ_MEDIA_VIDEO` (previously
+    also prompted for images)
+- Results
+  - Added `PickError.permissionDenied`; permission failures no longer surface
+    as `PickError.unknown`
+  - `PickResultMultiple` now exposes `error` (parity with `PickResultSingle`)
+  - Fixed: crop cancellation on non-web platforms now sets
+    `PickError.cropCanceled` (previously always `null`)
+- Web
+  - Conditional imports now use `dart.library.js_interop` instead of
+    `dart.library.html` for WebAssembly (WASM) compatibility
+
 ## 0.0.10 — 2025-11-14
 
 Permission handling migration and dependency updates.

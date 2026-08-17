@@ -37,19 +37,25 @@ class PickOptions {
   /// Camera or gallery source. On web/desktop, camera falls back to gallery.
   final ImageSource source;
 
-  /// Whether to show an "Open Settings" dialog when permission is permanently denied.
+  /// Formerly toggled the package's own "Open Settings" dialog.
+  ///
+  /// The permission library (`smart_permission`) now handles the
+  /// permanently-denied flow itself (dialog, opening Settings, waiting for
+  /// the user to return, and re-checking), so this flag is no longer read.
+  @Deprecated('The settings dialog is now handled by the permission flow '
+      'itself; customize it via the settingsDialog* fields instead.')
   final bool showOpenSettingsDialog;
 
-  /// Title for the settings dialog.
+  /// Title for the permission dialogs (rationale and "Open Settings").
   final String? settingsDialogTitle;
 
-  /// Message for the settings dialog.
+  /// Message for the permission dialogs (rationale and "Open Settings").
   final String? settingsDialogMessage;
 
-  /// Primary button label for the settings dialog.
+  /// Label of the "Open Settings" button in the permission dialogs.
   final String? settingsButtonLabel;
 
-  /// Cancel button label for the settings dialog.
+  /// Label of the cancel/deny button in the permission dialogs.
   final String? cancelButtonLabel;
 
   /// If true and picking a single image, opens the platform cropper UI after
@@ -158,13 +164,16 @@ class PickMetadata {
   });
 }
 
-/// Typed error for single-pick flows to disambiguate empty results.
+/// Typed error for pick flows to disambiguate empty results.
 enum PickError {
   /// User canceled the selection flow.
   canceled,
 
   /// User canceled the crop operation.
   cropCanceled,
+
+  /// Permission was denied (see [PermissionResolution] for details).
+  permissionDenied,
 
   /// I/O or platform failure.
   io,
@@ -177,9 +186,13 @@ enum PickError {
 class PickResultMultiple {
   final List<PickedMedia> items;
   final PermissionResolution permissionResolution;
+
+  /// Optional typed error indicating why the result is empty or special.
+  final PickError? error;
   const PickResultMultiple({
     required this.items,
     required this.permissionResolution,
+    this.error,
   });
 
   /// True when no items were selected.
