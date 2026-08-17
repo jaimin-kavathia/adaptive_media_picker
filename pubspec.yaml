@@ -13,8 +13,8 @@ topics:
   - file-selection
 
 environment:
-  sdk: ^3.4.0
-  flutter: ">=3.13.0"
+  sdk: ^3.10.0
+  flutter: ">=3.38.1"
 
 dependencies:
   flutter:
