@@ -11,6 +11,8 @@ WASM compatibility.
   - Updated `image_picker` from `^1.2.1` to `^1.2.3`
   - Android apps must now build with `compileSdk = 37` (required by
     `permission_handler` 13 via `smart_permission`); see README
+  - Minimum SDKs raised to Dart 3.10 / Flutter 3.38.1 (required by
+    `image_picker` 1.2.3 and `device_info_plus` 13)
 - Permission handling
   - Migrated to `smart_permission`'s result API: limited access and
     permanently-denied states are now reported accurately by the OS instead of
