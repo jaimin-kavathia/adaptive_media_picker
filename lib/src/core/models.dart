@@ -8,6 +8,31 @@ import 'package:image_picker/image_picker.dart';
 /// Media type requested for a pick operation.
 enum MediaType { image, video }
 
+/// Preset aspect ratios usable as the cropper's default via
+/// [PickOptions.cropAspectRatio].
+enum CropAspectRatioOption {
+  /// Free-form, based on the original image's own ratio.
+  original,
+
+  /// 1:1
+  square,
+
+  /// 3:2
+  ratio3x2,
+
+  /// 4:3
+  ratio4x3,
+
+  /// 5:4
+  ratio5x4,
+
+  /// 7:5
+  ratio7x5,
+
+  /// 16:9
+  ratio16x9,
+}
+
 /// Options that configure a pick operation (method-specific defaults apply).
 ///
 /// Use cases:
@@ -67,6 +92,23 @@ class PickOptions {
   /// Ignored for videos.
   final bool wantToCrop;
 
+  /// Default aspect ratio the cropper opens with when [wantToCrop] is true.
+  ///
+  /// If null, Android opens with [CropAspectRatioOption.square] (adjustable)
+  /// and iOS/Web open free-form, matching prior default behavior.
+  ///
+  /// Platform support: honored as the initial ratio on Android; on iOS it
+  /// only takes effect when combined with [lockCropAspectRatio] (see native
+  /// `image_cropper` behavior); Web uses it only as an initial hint.
+  final CropAspectRatioOption? cropAspectRatio;
+
+  /// When true, locks the crop box to [cropAspectRatio] so users can't
+  /// change it. Has no effect if [cropAspectRatio] is null.
+  ///
+  /// Platform support: Android and iOS. No effect on Web (the underlying
+  /// `image_cropper` web backend doesn't support locking the ratio).
+  final bool lockCropAspectRatio;
+
   /// Optional tag included in internal debug logs to help trace flows.
   final String? logTag;
 
@@ -95,6 +137,8 @@ class PickOptions {
     this.settingsButtonLabel,
     this.cancelButtonLabel,
     this.wantToCrop = false,
+    this.cropAspectRatio,
+    this.lockCropAspectRatio = false,
     this.logTag,
     this.themeBrightness,
     this.primaryColor,

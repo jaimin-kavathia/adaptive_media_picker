@@ -106,7 +106,11 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
     });
   }
 
-  Future<void> _runPickSingleImageCropped({required ImageSource source}) async {
+  Future<void> _runPickSingleImageCropped({
+    required ImageSource source,
+    CropAspectRatioOption? cropAspectRatio,
+    bool lockCropAspectRatio = false,
+  }) async {
     setState(() => _status = 'Requesting...');
     final result = await _picker.pickImage(
       context: context,
@@ -114,6 +118,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
         source: source,
         imageQuality: 80,
         wantToCrop: true,
+        cropAspectRatio: cropAspectRatio,
+        lockCropAspectRatio: lockCropAspectRatio,
         themeBrightness: widget.darkMode ? Brightness.dark : Brightness.light,
         primaryColor: Colors.blue,
         settingsDialogTitle: 'Permission required',
@@ -231,6 +237,14 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                   onPressed: () =>
                       _runPickSingleImageCropped(source: ImageSource.gallery),
                   child: const Text('Pick image (gallery, crop)'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _runPickSingleImageCropped(
+                    source: ImageSource.gallery,
+                    cropAspectRatio: CropAspectRatioOption.square,
+                    lockCropAspectRatio: true,
+                  ),
+                  child: const Text('Pick avatar (gallery, locked 1:1 crop)'),
                 ),
                 ElevatedButton(
                   onPressed: () => _runPickMultiImage(maxImages: 5),

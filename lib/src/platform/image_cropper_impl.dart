@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'mobile_image_cropper.dart' as mobile_impl;
 import 'web_image_cropper.dart' as web_impl;
 import '../stub/image_cropper_stub.dart' as stub_impl;
+import '../core/models.dart' show CropAspectRatioOption;
 
 /// Platform-specific image cropper implementation.
 ///
@@ -20,6 +21,8 @@ class PlatformImageCropper {
     int compressQuality = 100,
     Brightness? themeBrightness,
     Color? primaryColor,
+    CropAspectRatioOption? cropAspectRatio,
+    bool lockCropAspectRatio = false,
   }) async {
     // Check if cropping is supported on this platform
     if (!_isCroppingSupported()) {
@@ -40,6 +43,8 @@ class PlatformImageCropper {
           compressQuality: compressQuality,
           themeBrightness: themeBrightness,
           primaryColor: primaryColor,
+          cropAspectRatio: cropAspectRatio,
+          lockCropAspectRatio: lockCropAspectRatio,
         );
       } else if (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS) {
@@ -50,6 +55,8 @@ class PlatformImageCropper {
           compressQuality: compressQuality,
           themeBrightness: themeBrightness,
           primaryColor: primaryColor,
+          cropAspectRatio: cropAspectRatio,
+          lockCropAspectRatio: lockCropAspectRatio,
         );
       } else {
         return stub_impl.PlatformImageCropper.cropImage(

@@ -159,6 +159,8 @@ class AdaptiveMediaPicker {
           compressQuality: 100,
           themeBrightness: options.themeBrightness,
           primaryColor: options.primaryColor,
+          cropAspectRatio: options.cropAspectRatio,
+          lockCropAspectRatio: options.lockCropAspectRatio,
         );
         final String path = croppedPath ?? image.path;
         final Size? finalSize = croppedPath == null
@@ -250,6 +252,8 @@ class AdaptiveMediaPicker {
               compressQuality: 100,
               themeBrightness: options.themeBrightness,
               primaryColor: options.primaryColor,
+              cropAspectRatio: options.cropAspectRatio,
+              lockCropAspectRatio: options.lockCropAspectRatio,
             );
             if (croppedPath != null) {
               finalPath = croppedPath;
@@ -338,6 +342,8 @@ class AdaptiveMediaPicker {
         compressQuality: 100,
         themeBrightness: options.themeBrightness,
         primaryColor: options.primaryColor,
+        cropAspectRatio: options.cropAspectRatio,
+        lockCropAspectRatio: options.lockCropAspectRatio,
       );
       final String path = croppedPath ?? image.path;
       final Size? finalSize = croppedPath == null
@@ -575,5 +581,3 @@ class AdaptiveMediaPicker {
     return PickResultMultiple(items: items, permissionResolution: permission);
   }
 }
-
-// Removed custom aspect ratio preset; using stock presets per platform

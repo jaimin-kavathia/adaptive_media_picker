@@ -10,6 +10,8 @@ class PlatformImageCropper {
     int compressQuality = 100,
     dynamic themeBrightness,
     dynamic primaryColor,
+    dynamic cropAspectRatio,
+    bool lockCropAspectRatio = false,
   }) async {
     return null;
   }

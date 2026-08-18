@@ -1,3 +1,17 @@
+## 1.1.0 — 2026-08-18
+
+Configurable default crop aspect ratio.
+
+- Added `PickOptions.cropAspectRatio` (`CropAspectRatioOption?`) to set the
+  ratio the cropper opens with (`square`, `ratio3x2`, `ratio4x3`, `ratio5x4`,
+  `ratio7x5`, `ratio16x9`, or `original`). Defaults to `null`, which preserves
+  the previous behavior (square initial ratio on Android, free-form on
+  iOS/Web).
+- Added `PickOptions.lockCropAspectRatio` to lock the crop box to
+  `cropAspectRatio` on Android/iOS (no effect on Web — the `image_cropper`
+  web backend can't lock the ratio, only hint at an initial one).
+- Non-breaking: both fields are optional and additive.
+
 ## 1.0.2 — 2026-08-17
 
 WASM compatibility fix.
