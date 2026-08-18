@@ -90,6 +90,17 @@ final croppedImage = await picker.pickImage(
   options: const PickOptions(source: ImageSource.gallery, wantToCrop: true),
 );
 
+// Pick and crop with a locked default aspect ratio (e.g. a square avatar)
+final avatarImage = await picker.pickImage(
+  context: context,
+  options: const PickOptions(
+    source: ImageSource.gallery,
+    wantToCrop: true,
+    cropAspectRatio: CropAspectRatioOption.square,
+    lockCropAspectRatio: true,
+  ),
+);
+
 // Pick multiple images
 final multiImages = await picker.pickMultiImage(
   context: context,
@@ -299,6 +310,8 @@ Configuration options for image/video picking operations.
 | `settingsButtonLabel`    | `String?`     | Label for the “Open Settings” button.                                          |
 | `cancelButtonLabel`      | `String?`     | Label for the cancel/deny button.                                              |
 | `wantToCrop`             | `bool`        | Enable crop flow (Android/iOS/Web only, single image only).                    |
+| `cropAspectRatio`        | `CropAspectRatioOption?` | Default aspect ratio the cropper opens with (e.g. `square`, `ratio4x3`). Defaults to `square` on Android and free-form on iOS/Web when unset. |
+| `lockCropAspectRatio`    | `bool`        | Locks the crop box to `cropAspectRatio` (Android/iOS only; ignored on Web).     |
 | `themeBrightness`        | `Brightness?` | Override theme for limited sheet & cropper (`light`/`dark`).                   |
 | `primaryColor`           | `Color?`      | Primary accent color for limited sheet & cropper (e.g., blue).                 |
 | `logTag`                 | `String?`     | Optional debug tag for internal logging.                                       |
