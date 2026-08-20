@@ -36,7 +36,7 @@ class PlatformImageCropper {
           debugPrint('BuildContext is required for web cropping.');
           return null;
         }
-        return web_impl.BackendImageCropper.cropImage(
+        return await web_impl.BackendImageCropper.cropImage(
           sourcePath: sourcePath,
           context: context,
           compressFormat: compressFormat,
@@ -48,7 +48,7 @@ class PlatformImageCropper {
         );
       } else if (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS) {
-        return mobile_impl.BackendImageCropper.cropImage(
+        return await mobile_impl.BackendImageCropper.cropImage(
           sourcePath: sourcePath,
           context: context,
           compressFormat: compressFormat,
@@ -59,7 +59,7 @@ class PlatformImageCropper {
           lockCropAspectRatio: lockCropAspectRatio,
         );
       } else {
-        return stub_impl.PlatformImageCropper.cropImage(
+        return await stub_impl.PlatformImageCropper.cropImage(
           sourcePath: sourcePath,
           context: context,
           compressFormat: compressFormat,

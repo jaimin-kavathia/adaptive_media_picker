@@ -387,7 +387,7 @@ class AdaptiveMediaPicker {
   Future<Size?> _computeImageSizeFromPath(String path) async {
     try {
       final xf = XFile(path);
-      return _computeImageSizeFromXFile(xf);
+      return await _computeImageSizeFromXFile(xf);
     } catch (_) {
       return null;
     }
