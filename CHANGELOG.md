@@ -1,3 +1,12 @@
+## 1.1.1 — 2026-08-20
+
+Bug fix.
+
+- Fixed several `try`/`catch` blocks in `adaptive_media_picker_impl.dart` and
+  `image_cropper_impl.dart` that returned a `Future` without `await`, which
+  meant the `catch` couldn't actually catch errors thrown by that future —
+  they'd propagate as unhandled `Future` rejections instead.
+
 ## 1.1.0 — 2026-08-18
 
 Configurable default crop aspect ratio.
