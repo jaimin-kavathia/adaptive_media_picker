@@ -1,3 +1,25 @@
+## 1.2.0 — 2026-08-26
+
+Google Play Photo and Video Permissions policy compliance.
+
+- **Android gallery picks no longer request any runtime media permission.**
+  Picking already went through the system picker (`image_picker`), which
+  grants per-item access without `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` /
+  `READ_EXTERNAL_STORAGE`. Requesting the permission anyway forced host apps
+  to declare it in their manifest — which Google Play now rejects for apps
+  with one-time or infrequent media use. Host apps can (and should) remove
+  those permissions from their `AndroidManifest.xml`.
+- Android gallery picks now opt in to the Android photo picker
+  (`useAndroidPhotoPicker = true` on `image_picker`'s Android platform
+  implementation), falling back to the legacy `GET_CONTENT` picker on
+  devices without it. Note this flag is global to `image_picker`, so other
+  gallery picks in the host app made through `image_picker` will also use
+  the photo picker.
+- Camera picks still request `CAMERA` (and `RECORD_AUDIO` for video) as
+  before. iOS, web, and desktop behavior is unchanged.
+- Removed the `device_info_plus` dependency (no longer needed); added
+  `image_picker_android` and `image_picker_platform_interface`.
+
 ## 1.1.1 — 2026-08-20
 
 Bug fix.
