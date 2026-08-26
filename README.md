@@ -213,11 +213,13 @@ When the user grants **limited access**, the picker automatically shows a native
 
 ### 🧱 Android
 
+**No storage or media permissions are needed for gallery picks.** Since 1.2.0, gallery picking goes through the [Android photo picker](https://developer.android.com/training/data-storage/shared/photopicker) (falling back to the system `GET_CONTENT` picker on devices without it), which grants per-item access without `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` / `READ_EXTERNAL_STORAGE`. Do **not** declare those permissions for this package — Google Play's [Photo and Video Permissions policy](https://support.google.com/googleplay/android-developer/answer/14115180) rejects apps that declare them for one-time or infrequent media use.
+
+Only declare camera permissions if you pick from the camera:
+
 ```xml
-<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.CAMERA" />
+<!-- Only needed when recording videos: -->
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 ```
 
