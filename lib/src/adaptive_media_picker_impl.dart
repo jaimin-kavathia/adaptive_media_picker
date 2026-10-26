@@ -306,14 +306,16 @@ class AdaptiveMediaPicker {
       return _singleResult(media, permission, options, uncropped);
     }
 
+    // The native cropper can't read the Flutter theme, so resolve it here.
+    final ThemeData theme = Theme.of(context);
     final String? croppedPath = await PlatformImageCropper.cropImage(
       sourcePath: media.path,
       context: context,
       // Keep PNGs (and their transparency) as PNG.
       compressFormat: media.mimeType == 'image/png' ? 'png' : 'jpg',
       compressQuality: options.imageQuality ?? 100,
-      themeBrightness: options.themeBrightness,
-      primaryColor: options.primaryColor,
+      themeBrightness: options.themeBrightness ?? theme.brightness,
+      primaryColor: options.primaryColor ?? theme.colorScheme.primary,
       cropAspectRatio: options.cropAspectRatio,
       lockCropAspectRatio: options.lockCropAspectRatio,
       cropShape: options.cropShape,

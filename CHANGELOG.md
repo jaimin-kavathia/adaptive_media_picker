@@ -71,6 +71,13 @@ Changes and fixes:
   platform matrix (limited-access UX is iOS-only; cropping is everywhere) and
   documented the remaining public API. README images are no longer shipped
   in the package archive.
+- The native cropper (Android) now follows the app theme when
+  `primaryColor` / `themeBrightness` aren't set (it used to fall back to a
+  fixed blue, light-mode toolbar), and its toolbar icons are colored for
+  contrast with the toolbar itself, so they stay readable in dark mode.
+- Example app: Android build updated to Gradle 8.14.3, AGP 8.11.1 and
+  Kotlin 2.2.20 (the minimums current Flutter accepts), plus a
+  "Pick video (choose source)" demo.
 - Built-in crop editor shows the whole image on a dark backdrop (it used to
   zoom landscape photos) with fully visible corner handles.
 

@@ -194,6 +194,16 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
         ),
       ),
       (
+        'Pick video (choose source)',
+        () => _single(
+          () => _picker.pickVideo(
+            context: context,
+            sourceSheet: const SourceSheetOptions(),
+            options: const PickOptions(maxVideoDuration: Duration(seconds: 10)),
+          ),
+        ),
+      ),
+      (
         'Pick multiple videos',
         () => _multiple(
           () => _picker.pickMultiVideo(

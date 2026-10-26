@@ -126,7 +126,6 @@ class BackendImageCropper {
         primaryColor ?? (isDark ? Colors.blueAccent : Colors.blue);
     // Surfaces and text colors
     final Color surface = isDark ? const Color(0xFF121212) : Colors.white;
-    final Color onSurface = isDark ? Colors.white : Colors.black;
     // Dim and frame/grid accents
     final Color dimmed = isDark ? Colors.black54 : Colors.black26;
     final Color frameColor = primary.withValues(alpha: 0.9);
@@ -137,7 +136,8 @@ class BackendImageCropper {
           toolbarTitle: title,
           cropStyle: cropStyle,
           toolbarColor: primary,
-          toolbarWidgetColor: onSurface.computeLuminance() > 0.5
+          // Icons/title sit on the primary-colored toolbar.
+          toolbarWidgetColor: primary.computeLuminance() > 0.5
               ? Colors.black
               : Colors.white,
           backgroundColor: surface,
