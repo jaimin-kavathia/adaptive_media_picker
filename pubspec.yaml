@@ -1,6 +1,6 @@
 name: adaptive_media_picker
-description: "Adaptive Flutter media picker for images & videos with smart permissions, limited access UI, and cross-platform support (Android, iOS, Web, Desktop)."
-version: 1.2.0
+description: "Image & video picker with permissions, camera/gallery source sheet, cropping (incl. circle) on every platform, size/type validation, and no READ_MEDIA permission."
+version: 2.0.0
 repository: https://github.com/jaimin-kavathia/adaptive_media_picker
 issue_tracker: https://github.com/jaimin-kavathia/adaptive_media_picker/issues
 documentation: https://pub.dev/documentation/adaptive_media_picker/latest/
@@ -22,7 +22,8 @@ dependencies:
   image_picker: ^1.2.3
   image_picker_android: ^0.8.13
   image_picker_platform_interface: ^2.10.0
-  image_cropper: ^12.2.1
+  image_cropper: ">=12.2.1 <14.0.0"
+  crop_your_image: ^2.0.1
   smart_permission: ^1.0.1
   photo_manager: ^3.12.0
 

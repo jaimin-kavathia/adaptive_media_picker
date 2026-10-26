@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
-import '../core/models.dart' show CropAspectRatioOption;
+import '../core/models.dart'
+    show CropAspectRatioOption, CropShape, PickerLabels;
 
 /// Mobile image cropper implementation for Android and iOS.
 class BackendImageCropper {
@@ -15,22 +16,32 @@ class BackendImageCropper {
     Color? primaryColor,
     CropAspectRatioOption? cropAspectRatio,
     bool lockCropAspectRatio = false,
+    CropShape cropShape = CropShape.rectangle,
+    PickerLabels labels = const PickerLabels(),
   }) async {
     try {
       final ImageCompressFormat format = compressFormat == 'png'
           ? ImageCompressFormat.png
           : ImageCompressFormat.jpg;
 
-      final CropAspectRatioPreset initPreset =
-          _presetFor(cropAspectRatio ?? CropAspectRatioOption.square);
+      // A circle is always a locked 1:1.
+      final bool circle = cropShape == CropShape.circle;
+      final CropAspectRatioOption? ratio = circle
+          ? CropAspectRatioOption.square
+          : cropAspectRatio;
+      final bool lock = circle || lockCropAspectRatio;
+
+      final CropAspectRatioPreset initPreset = _presetFor(
+        ratio ?? CropAspectRatioOption.square,
+      );
 
       // Android's `withAspectRatio`/`lockAspectRatio` and iOS's initial
       // ratio both rely on this top-level, numeric, *locking* aspect ratio.
       // There's no way to hand iOS an initial-but-adjustable ratio, so that
       // combination only takes effect on Android via [initPreset] below.
       CropAspectRatio? lockedRatio;
-      if (lockCropAspectRatio && cropAspectRatio != null) {
-        final (int, int)? data = _ratioData(cropAspectRatio);
+      if (lock && ratio != null) {
+        final (int, int)? data = _ratioData(ratio);
         if (data != null) {
           lockedRatio = CropAspectRatio(
             ratioX: data.$1.toDouble(),
@@ -48,7 +59,9 @@ class BackendImageCropper {
           themeBrightness: themeBrightness,
           primaryColor: primaryColor,
           initAspectRatio: initPreset,
-          lockAspectRatio: lockCropAspectRatio,
+          lockAspectRatio: lock,
+          cropStyle: circle ? CropStyle.circle : CropStyle.rectangle,
+          title: labels.cropTitle,
         ),
       );
 
@@ -103,6 +116,8 @@ class BackendImageCropper {
     Color? primaryColor,
     required CropAspectRatioPreset initAspectRatio,
     required bool lockAspectRatio,
+    required CropStyle cropStyle,
+    required String title,
   }) {
     final Brightness brightness = themeBrightness ?? Brightness.light;
     final bool isDark = brightness == Brightness.dark;
@@ -119,10 +134,12 @@ class BackendImageCropper {
     if (defaultTargetPlatform == TargetPlatform.android) {
       return [
         AndroidUiSettings(
-          toolbarTitle: 'Cropper',
+          toolbarTitle: title,
+          cropStyle: cropStyle,
           toolbarColor: primary,
-          toolbarWidgetColor:
-              onSurface.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+          toolbarWidgetColor: onSurface.computeLuminance() > 0.5
+              ? Colors.black
+              : Colors.white,
           backgroundColor: surface,
           activeControlsWidgetColor: primary,
           dimmedLayerColor: dimmed,
@@ -149,7 +166,8 @@ class BackendImageCropper {
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
       return [
         IOSUiSettings(
-          title: 'Cropper',
+          title: title,
+          cropStyle: cropStyle,
           aspectRatioPresets: [
             CropAspectRatioPreset.original,
             CropAspectRatioPreset.square,

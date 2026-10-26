@@ -16,8 +16,9 @@ void main() {
       ImagePickerPlatform.instance = ImagePickerAndroid();
     });
 
-    testWidgets('grants gallery access without requesting permissions',
-        (tester) async {
+    testWidgets('grants gallery access without requesting permissions', (
+      tester,
+    ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
 
       late BuildContext ctx;

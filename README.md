@@ -1,178 +1,250 @@
-# 📸 Adaptive Media Picker
+# Adaptive Media Picker
 
-<p align="center">
-  <a href="https://pub.dev/packages/adaptive_media_picker"><img src="https://img.shields.io/pub/v/adaptive_media_picker.svg?label=pub.dev&color=blueviolet&logo=dart" alt="Pub.dev Badge"></a>
-  <a href="https://github.com/jaimin-kavathia/adaptive_media_picker/actions/workflows/ci.yml"><img src="https://github.com/jaimin-kavathia/adaptive_media_picker/actions/workflows/ci.yml/badge.svg" alt="Build Badge"></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/platform-Flutter-ff69b4.svg" alt="Flutter Badge">
-</p>
+[![pub package](https://img.shields.io/pub/v/adaptive_media_picker.svg?label=pub.dev&color=blueviolet&logo=dart)](https://pub.dev/packages/adaptive_media_picker)
+[![pub points](https://img.shields.io/pub/points/adaptive_media_picker?logo=dart)](https://pub.dev/packages/adaptive_media_picker/score)
+[![likes](https://img.shields.io/pub/likes/adaptive_media_picker?logo=dart)](https://pub.dev/packages/adaptive_media_picker/score)
+[![CI](https://github.com/jaimin-kavathia/adaptive_media_picker/actions/workflows/ci.yml/badge.svg)](https://github.com/jaimin-kavathia/adaptive_media_picker/actions/workflows/ci.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-<p align="center">
-  <strong>🚀 Adaptive, permission-aware media picker for Flutter</strong><br/>
-  <em>Handles limited & full access gracefully — with native-like UX on Android, iOS, Web, and Desktop.</em>
-</p>
+**Pick images and videos in Flutter with one call — permissions, a camera/gallery chooser, cropping and validation included.**
+Works on Android, iOS, Web (JS & WASM), macOS, Windows and Linux.
 
-<p align="center">
-  <img src="assets/images/adaptive_media_picker.png" alt="Adaptive Media Picker" width="100%">
-</p>
+![Adaptive Media Picker](https://raw.githubusercontent.com/jaimin-kavathia/adaptive_media_picker/main/assets/images/banner.png)
 
----
-
-## ✨ Why Adaptive Media Picker?
-
-Most media pickers only open the gallery or camera — but fail when permissions are **limited** or **restricted**.
-`adaptive_media_picker` is designed to **handle every case automatically**, making your UX seamless.
-
-### 💡 What makes it different?
-
-- ✅ Auto permission handling
-- ✅ Built-in **limited-access sheet** (for iOS & Android)
-- ✅ Optional **image cropping** (Android / iOS / Web)
-- ✅ Works seamlessly on **Web, Desktop, and Mobile**
-- ✅ **Single unified API** for images & videos
-
-<p align="center">
-  <img src="assets/images/limited_access_image_pick.jpg" alt="Pick image" width="28%"/>
-  <img src="assets/images/limited_access_multi_image_pick.jpg" alt="Pick multiple images" width="28%" style="margin:0 8px"/>
-  <img src="assets/images/limited_access_video_pick.jpg" alt="Pick video" width="28%"/>
-</p>
-
-<p align="center">
-  <em>✨ Built-in limited access bottom sheet UI (native full-access flow on Android/iOS)</em>
-</p>
+| Source sheet (Android) | Source sheet (iOS) | Circle crop | Results |
+| :---: | :---: | :---: | :---: |
+| <img src="https://raw.githubusercontent.com/jaimin-kavathia/adaptive_media_picker/main/assets/images/screen_sheet_material.png" width="200" alt="Material source sheet"> | <img src="https://raw.githubusercontent.com/jaimin-kavathia/adaptive_media_picker/main/assets/images/screen_sheet_ios.png" width="200" alt="Cupertino source sheet"> | <img src="https://raw.githubusercontent.com/jaimin-kavathia/adaptive_media_picker/main/assets/images/screen_crop_circle.png" width="200" alt="Circle crop"> | <img src="https://raw.githubusercontent.com/jaimin-kavathia/adaptive_media_picker/main/assets/images/screen_results.png" width="200" alt="Picked items"> |
 
 ---
 
-## 🚀 Features at a Glance
+## Why this package?
 
-| Feature                       | Description                                  |
-| :---------------------------- | :------------------------------------------- |
-| 📷 Image & Video Picker       | Pick single/multiple images or single videos |
-| ✂️ Cropping                   | Optional crop (Android, iOS, Web)            |
-| 🔐 Permission-aware           | Handles full, limited, denied states         |
-| 🧭 Cross-platform             | Works on mobile, web, and desktop            |
-| 🖼️ Built-in Limited Access UI | Native-like bottom sheet                     |
-| 🧩 Fallbacks                  | Smart fallbacks for unsupported platforms    |
-| 🎯 Web Safe                   | No `dart:io` — works on Flutter Web          |
+`image_picker` opens the system picker. Everything around it — asking for permissions, letting the user choose camera or gallery, cropping, checking file size — every app writes again. This package does it for you, on top of `image_picker`.
 
-> ⚠️ Multiple video selection is **not supported** by native APIs.
-
----
-
-## 🗂️ Platform Support Matrix
-
-| Feature                 | Android | iOS | Web | macOS | Windows | Linux |
-| ----------------------- | :-----: | :-: | :-: | :---: | :-----: | :---: |
-| Single image pick       |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
-| Multi-image pick        |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
-| Single video pick       |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
-| Multiple videos         |   ❌    | ❌  | ❌  |  ❌   |   ❌    |  ❌   |
-| Camera capture          |   ✅    | ✅  | ❌  |  ❌   |   ❌    |  ❌   |
-| Limited-access UX       |   ✅    | ✅  | ❌  |  ✅   |   ❌    |  ❌   |
-| Cropping (single image) |   ✅    | ✅  | ✅  |  ❌   |   ❌    |  ❌   |
+| You need…                                         | `image_picker` alone          | `adaptive_media_picker`                     |
+| :------------------------------------------------ | :---------------------------- | :------------------------------------------ |
+| Camera / Photos permission prompts + Settings flow | DIY (`permission_handler`)    | ✅ Built in, customizable text              |
+| "Take photo / Choose from gallery" chooser         | DIY                           | ✅ `sourceSheet:` (Cupertino on iOS)        |
+| Cropping, incl. circle avatars                     | Separate package + setup      | ✅ `wantToCrop: true`                       |
+| Cropping on Web and desktop                        | ❌                            | ✅ Built-in editor, no setup                |
+| iOS "Selected Photos" (limited access)             | DIY                           | ✅ Built-in selection sheet                 |
+| Max file size / allowed types                      | DIY                           | ✅ `maxFileSizeBytes`, `allowedMimeTypes`   |
+| Why nothing was picked                             | `null`                        | ✅ Typed `PickError` + permission state     |
+| File name, size, MIME type, bytes on Web           | Partly                        | ✅ On every `PickedMedia`                   |
+| Google Play photo policy                           | Your responsibility           | ✅ No `READ_MEDIA_*` permission needed      |
 
 ---
 
-## ⚡ Quick Start
+## Installation
+
+```bash
+flutter pub add adaptive_media_picker
+```
+
+```dart
+import 'package:adaptive_media_picker/adaptive_media_picker.dart';
+```
+
+Then follow the short [platform setup](#platform-setup) for the features you use.
+
+## Quick start
 
 ```dart
 final picker = AdaptiveMediaPicker();
 
-// Pick a single image
-final singleImage = await picker.pickImage(
-  context: context,
-  options: const PickOptions(source: ImageSource.gallery, imageQuality: 80),
-);
-
-// Pick and crop
-final croppedImage = await picker.pickImage(
-  context: context,
-  options: const PickOptions(source: ImageSource.gallery, wantToCrop: true),
-);
-
-// Pick and crop with a locked default aspect ratio (e.g. a square avatar)
-final avatarImage = await picker.pickImage(
-  context: context,
-  options: const PickOptions(
-    source: ImageSource.gallery,
-    wantToCrop: true,
-    cropAspectRatio: CropAspectRatioOption.square,
-    lockCropAspectRatio: true,
-  ),
-);
-
-// Pick multiple images
-final multiImages = await picker.pickMultiImage(
-  context: context,
-  options: const PickOptions(maxImages: 5, source: ImageSource.gallery),
-);
-
-// Pick a single video
-final singleVideo = await picker.pickVideo(
-  context: context,
-  options: const PickOptions(source: ImageSource.gallery),
-);
+final result = await picker.pickImage(context: context);
+final photo = result.item; // null if the user canceled
 ```
+
+That's it: permissions are requested (and explained) when needed, iOS limited access is handled, and failures come back as a typed `result.error` instead of an exception.
 
 ---
 
-## 🎨 Theming
+## Usage
 
-Both the built-in limited-access bottom sheet and the optional cropper can follow your app theme or be overridden via `PickOptions`:
-
-- **Automatic**: By default, the package uses `Theme.of(context)` for surfaces and text.
-- **Override**: Set these optional fields on `PickOptions`:
-  - `themeBrightness`: `Brightness.light` or `Brightness.dark`
-  - `primaryColor`: the primary accent color (e.g. `Colors.blue`)
-
-Example:
+### Profile photo: camera or gallery, circle crop, remove
 
 ```dart
 final result = await picker.pickImage(
   context: context,
+  sourceSheet: SourceSheetOptions(
+    title: 'Profile photo',
+    removeLabel: hasAvatar ? 'Remove photo' : null, // optional
+  ),
   options: const PickOptions(
     wantToCrop: true,
-    themeBrightness: Brightness.dark,
-    primaryColor: Colors.blue,
+    cropShape: CropShape.circle,
+    preferredCameraDevice: CameraDevice.front,
+    maxFileSizeBytes: 5 * 1024 * 1024, // 5 MB
   ),
 );
+
+if (result.removeRequested) {
+  // the user tapped "Remove photo"
+} else if (result.item case final photo?) {
+  final bytes = await photo.readAsBytes(); // works on Web too
+}
 ```
 
-Notes:
+The sheet is a Cupertino action sheet on iOS/macOS and a Material bottom sheet elsewhere (`style:` overrides it). Where there is no camera (Web, desktop) the camera option is hidden, and if only the gallery is left the sheet is skipped. Need just the choice? `await picker.showSourceSheet(context: context)` returns a `MediaSourceChoice`.
 
-- Limited-access bottom sheet inherits your app theme when overrides are not provided.
-- Android cropper toolbar, controls, and grid/frame colors derive from `themeBrightness` and `primaryColor`.
-- Web cropper uses the provided `context` (dialog/page) and will follow your theme colors; primary accent applies to available UI elements.
+### Multiple images
+
+```dart
+final result = await picker.pickMultiImage(
+  context: context,
+  options: const PickOptions(maxImages: 5, imageQuality: 80),
+);
+for (final image in result.items) { /* ... */ }
+```
+
+### Videos, and photos + videos together
+
+```dart
+// One video, or record one (max 30 s) with the camera
+final video = await picker.pickVideo(
+  context: context,
+  options: const PickOptions(
+    source: ImageSource.camera,
+    maxVideoDuration: Duration(seconds: 30),
+  ),
+);
+
+// Several videos
+final videos = await picker.pickMultiVideo(context: context);
+
+// Photos and videos in one picker
+final media = await picker.pickMultipleMedia(
+  context: context,
+  options: const PickOptions(maxImages: 10),
+);
+final onlyVideos = media.items.where((m) => m.isVideo);
+```
+
+### Cropping
+
+```dart
+const PickOptions(
+  wantToCrop: true,
+  cropAspectRatio: CropAspectRatioOption.ratio16x9, // initial ratio
+  lockCropAspectRatio: true,                         // keep it fixed
+  // cropShape: CropShape.circle,                    // or a circle (1:1)
+)
+```
+
+Android and iOS use the native cropper (uCrop / TOCropViewController). Web, macOS, Windows and Linux use a built-in Flutter crop editor with ratio presets. If the user backs out of cropping you still get the original image, with `PickError.cropCanceled`.
+
+<img src="https://raw.githubusercontent.com/jaimin-kavathia/adaptive_media_picker/main/assets/images/screen_crop_ratio.png" width="220" alt="Built-in crop editor with ratio presets">
+
+### Size and type limits
+
+```dart
+final result = await picker.pickMultiImage(
+  context: context,
+  options: const PickOptions(
+    maxFileSizeBytes: 10 * 1024 * 1024,
+    allowedMimeTypes: ['image/jpeg', 'image/png'], // or ['image/*']
+  ),
+);
+// Valid files are in result.items; the others are in result.rejected,
+// each with its reason (PickError.fileTooLarge / unsupportedType).
+```
+
+### Uploading (including Web)
+
+On Web, `path` is a blob URL, so use `name` and `readAsBytes()`:
+
+```dart
+final item = result.item!;
+final bytes = await item.readAsBytes();
+upload(bytes, filename: item.name, contentType: item.mimeType);
+```
+
+### Handling the result
+
+```dart
+final result = await picker.pickImage(context: context);
+switch (result.error) {
+  case null:
+    final media = result.item; // name, path, mimeType, sizeInBytes, width, height
+  case PickError.canceled:
+    break; // user backed out
+  case PickError.cropCanceled:
+    break; // result.item is the uncropped image
+  case PickError.permissionDenied:
+    // result.permissionResolution.permanentlyDenied tells you whether the
+    // user must change it in Settings (the package already offered that).
+    break;
+  case PickError.fileTooLarge:
+  case PickError.unsupportedType:
+    break; // failed maxFileSizeBytes / allowedMimeTypes
+  case PickError.io:
+  case PickError.unknown:
+    break; // platform failure; set PickOptions.logTag to find it in logs
+}
+```
+
+### Recover a pick after Android kills your app
+
+On low-memory Android devices the system can destroy your activity while the camera is open. Call this on startup to get that photo back:
+
+```dart
+final lost = await picker.recoverLostData();
+if (lost != null) handle(lost.items);
+```
+
+### Theming and translations
+
+The built-in UI follows your app theme. Override per call, and translate every built-in string:
+
+```dart
+const PickOptions(
+  themeBrightness: Brightness.dark,
+  primaryColor: Colors.teal,
+  settingsDialogTitle: 'Camera access needed',
+  labels: PickerLabels(cropTitle: 'Recortar', done: 'Listo', cancel: 'Cancelar'),
+)
+```
+
+Source sheet texts are set in `SourceSheetOptions` (`cameraLabel`, `galleryLabel`, `removeLabel`, `cancelLabel`).
 
 ---
 
-## 📌 Common Use Cases
+## Platform setup
 
-- 🖼️ Select & crop a profile picture
-- 📸 Capture or choose multiple images for a gallery/post
-- 🎥 Pick single video from camera or gallery
-- 🔐 Handle **limited access** permissions gracefully
+### Android
 
----
+**Gallery picks need no permission.** They go through the [Android photo picker](https://developer.android.com/training/data-storage/shared/photopicker), so do **not** declare `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` or `READ_EXTERNAL_STORAGE` for this package — Google Play's [Photo and Video Permissions policy](https://support.google.com/googleplay/android-developer/answer/14115180) rejects apps that declare them for occasional media use.
 
-## ✂️ Cropping Setup
+Only if you use the camera, add to `AndroidManifest.xml`:
 
-Cropping is supported on **Android**, **iOS**, and **Web**.
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+<!-- Only when recording videos: -->
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+```
 
-### 📱 Android
+`permission_handler` 13 (used internally) needs **compileSdk 37**; Flutter's default is 36. In `android/app/build.gradle(.kts)`:
 
-Add `UCropActivity` to your `AndroidManifest.xml`:
+```kts
+android {
+    compileSdk = 37
+}
+```
+
+Only if you use cropping, add the cropper activity to `AndroidManifest.xml`:
 
 ```xml
 <activity
-        android:name="com.yalantis.ucrop.UCropActivity"
-        android:screenOrientation="portrait"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+    android:name="com.yalantis.ucrop.UCropActivity"
+    android:screenOrientation="portrait"
+    android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 ```
 
-> ✅ Android embedding v2 required
+<details>
+<summary>Release build fails with missing OkHttp classes (R8)?</summary>
 
-> ℹ️ If you enable cropping and build a release APK/AAB (R8/minify), UCrop may reference OkHttp classes. Add these dependencies to your app’s `build.gradle(.kts)` to avoid missing-class errors (only needed when cropping on Android):
+uCrop references OkHttp. Add to `android/app/build.gradle(.kts)`:
 
 ```kts
 dependencies {
@@ -181,246 +253,150 @@ dependencies {
 }
 ```
 
-### 🍏 iOS
+</details>
 
-No additional setup required.
+### iOS
 
-### 🌐 Web
-
-Add **cropperjs** to `web/index.html`:
-
-```html
-<link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.css"
-/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
-```
-
----
-
-## 🔐 Limited Access UX
-
-When the user grants **limited access**, the picker automatically shows a native-like dialog with options:
-
-- 📁 **Manage Selection** (iOS only)
-- ⚙️ **Open Settings** (iOS/macOS/Android)
-- 🕓 Auto-dismisses after interaction
-
----
-
-## ⚙️ Permissions Setup
-
-### 🧱 Android
-
-**No storage or media permissions are needed for gallery picks.** Since 1.2.0, gallery picking goes through the [Android photo picker](https://developer.android.com/training/data-storage/shared/photopicker) (falling back to the system `GET_CONTENT` picker on devices without it), which grants per-item access without `READ_MEDIA_IMAGES` / `READ_MEDIA_VIDEO` / `READ_EXTERNAL_STORAGE`. Do **not** declare those permissions for this package — Google Play's [Photo and Video Permissions policy](https://support.google.com/googleplay/android-developer/answer/14115180) rejects apps that declare them for one-time or infrequent media use.
-
-Only declare camera permissions if you pick from the camera:
-
-```xml
-<uses-permission android:name="android.permission.CAMERA" />
-<!-- Only needed when recording videos: -->
-<uses-permission android:name="android.permission.RECORD_AUDIO" />
-```
-
-> ⚠️ `permission_handler` 13 (used via `smart_permission`) requires **`compileSdk = 37`**. Flutter's default is still 36, so set it explicitly in `android/app/build.gradle(.kts)`:
-
-```kts
-android {
-    compileSdk = 37
-}
-```
-
-### 🍎 iOS
+Add the usage descriptions you need to `ios/Runner/Info.plist`:
 
 ```xml
 <key>NSPhotoLibraryUsageDescription</key>
-<string>This app needs photo library access to pick images.</string>
+<string>Choose photos and videos to share.</string>
 <key>NSCameraUsageDescription</key>
-<string>This app needs camera access to take photos and videos.</string>
+<string>Take photos and videos.</string>
 <key>NSMicrophoneUsageDescription</key>
-<string>This app needs microphone access when recording videos.</string>
-<key>NSPhotoLibraryAddUsageDescription</key>
-<string>This app may save images/videos to your photo library.</string>
+<string>Record audio with videos.</string>
 ```
 
-To ensure your app works smoothly with media picking and cropping on iOS, you'll need to configure the required permissions in your `Podfile` for Flutter.
-
-**Add the following code to the `post_install` section of your `Podfile`:**
+Enable the matching permissions in the `post_install` block of `ios/Podfile`:
 
 ```ruby
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
-
     target.build_configurations.each do |config|
-      # Enable only the permissions you need in your app
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
         '$(inherited)',
         'PERMISSION_CAMERA=1',
         'PERMISSION_MICROPHONE=1',
         'PERMISSION_PHOTOS=1',
-        # Examples of other permissions you might enable:
-        # 'PERMISSION_NOTIFICATIONS=1',
-        # 'PERMISSION_MEDIA_LIBRARY=1',
-        # 'PERMISSION_BLUETOOTH=1',
-        # 'PERMISSION_APP_TRACKING_TRANSPARENCY=1',
       ]
     end
   end
 end
 ```
 
-This will make sure the necessary permissions for Camera, Microphone, and Photos are enabled in your iOS project, allowing the picker to function properly.
+When the user shares only some photos ("Selected Photos"), the package shows its own grid of those photos, with **Select more** and **Open Settings** if the selection is empty.
 
-### 💻 macOS
+### macOS
+
+Add to both `DebugProfile.entitlements` and `Release.entitlements`:
 
 ```xml
 <key>com.apple.security.files.user-selected.read-only</key>
 <true/>
 ```
 
-> 🧩 Desktop platforms use native file dialogs.
-> Camera capture is not supported on desktop.
+### Web, Windows, Linux
+
+No setup. Camera requests fall back to the file chooser.
 
 ---
 
-## 🧩 API Overview
+## Platform support
 
-| Method             | Description                            |
-| :----------------- | :------------------------------------- |
-| `pickImage()`      | Pick single image (optionally cropped) |
-| `pickMultiImage()` | Pick multiple images                   |
-| `pickVideo()`      | Pick single video                      |
+| Feature                     | Android | iOS | Web | macOS | Windows | Linux |
+| :-------------------------- | :-----: | :-: | :-: | :---: | :-----: | :---: |
+| Images (single / multiple)  |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
+| Videos (single / multiple)  |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
+| Photos + videos together    |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
+| Camera capture              |   ✅    | ✅  |  —  |   —   |    —    |   —   |
+| Source sheet                |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
+| Cropping (rect & circle)    |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
+| Limited-access sheet        |    —    | ✅  |  —  |   —   |    —    |   —   |
+| Size / type validation      |   ✅    | ✅  | ✅  |  ✅   |   ✅    |  ✅   |
+| Lost-data recovery          |   ✅    |  —  |  —  |   —   |    —    |   —   |
 
-## 📘 Data Models Overview
-
-### 🧩 **PickOptions**
-
-Configuration options for image/video picking operations.
-
-| Field                    | Type          | Description                                                                    |
-| :----------------------- | :------------ | :----------------------------------------------------------------------------- |
-| `maxImages`              | `int?`        | Maximum number of images for multi-image pick. Ignored for single image/video. |
-| `imageQuality`           | `int?`        | JPEG compression quality (0–100).                                              |
-| `maxWidth`               | `int?`        | Resize width for images when supported.                                        |
-| `maxHeight`              | `int?`        | Resize height for images when supported.                                       |
-| `source`                 | `ImageSource` | Source — `gallery` or `camera`. Falls back to gallery on web/desktop.          |
-| `showOpenSettingsDialog` | `bool`        | **Deprecated.** The permission flow shows its own settings dialog.             |
-| `settingsDialogTitle`    | `String?`     | Custom title for the permission dialogs (rationale / open settings).           |
-| `settingsDialogMessage`  | `String?`     | Custom message for the permission dialogs.                                     |
-| `settingsButtonLabel`    | `String?`     | Label for the “Open Settings” button.                                          |
-| `cancelButtonLabel`      | `String?`     | Label for the cancel/deny button.                                              |
-| `wantToCrop`             | `bool`        | Enable crop flow (Android/iOS/Web only, single image only).                    |
-| `cropAspectRatio`        | `CropAspectRatioOption?` | Default aspect ratio the cropper opens with (e.g. `square`, `ratio4x3`). Defaults to `square` on Android and free-form on iOS/Web when unset. |
-| `lockCropAspectRatio`    | `bool`        | Locks the crop box to `cropAspectRatio` (Android/iOS only; ignored on Web).     |
-| `themeBrightness`        | `Brightness?` | Override theme for limited sheet & cropper (`light`/`dark`).                   |
-| `primaryColor`           | `Color?`      | Primary accent color for limited sheet & cropper (e.g., blue).                 |
-| `logTag`                 | `String?`     | Optional debug tag for internal logging.                                       |
+"—" means the platform has no such concept; the call still works (e.g. camera falls back to the gallery).
 
 ---
 
-### 🖼️ **PickedMedia**
+## API reference
 
-Represents a single picked image or video.
+Full docs: [pub.dev API reference](https://pub.dev/documentation/adaptive_media_picker/latest/).
 
-| Field      | Type      | Description                          |
-| :--------- | :-------- | :----------------------------------- |
-| `path`     | `String`  | Local file path to the picked media. |
-| `mimeType` | `String?` | MIME type if available.              |
-| `width`    | `int?`    | Image width (when known).            |
-| `height`   | `int?`    | Image height (when known).           |
+### Methods on `AdaptiveMediaPicker`
 
----
+| Method                 | Returns              | What it does                                   |
+| :--------------------- | :------------------- | :--------------------------------------------- |
+| `pickImage`            | `PickResultSingle`   | One image, optionally cropped                  |
+| `pickVideo`            | `PickResultSingle`   | One video from the gallery or camera           |
+| `pickMedia`            | `PickResultSingle`   | One image or video                             |
+| `pickMultiImage`       | `PickResultMultiple` | Several images                                 |
+| `pickMultiVideo`       | `PickResultMultiple` | Several videos                                 |
+| `pickMultipleMedia`    | `PickResultMultiple` | Several images and videos                      |
+| `showSourceSheet`      | `MediaSourceChoice?` | Just the camera / gallery / remove choice      |
+| `recoverLostData`      | `PickResultMultiple?`| A pick lost when Android killed the app        |
 
-### 🧾 **PickResultSingle**
+Every pick method takes `context`, `options` (`PickOptions`) and an optional `sourceSheet` (`SourceSheetOptions`).
 
-Returned from `pickImage()` or `pickVideo()`.
+### `PickOptions`
 
-| Field                  | Type                   | Description                                |
-| :--------------------- | :--------------------- | :----------------------------------------- |
-| `item`                 | `PickedMedia?`         | Picked item, or `null` if none.            |
-| `permissionResolution` | `PermissionResolution` | Final permission state after operation.    |
-| `metadata`             | `PickMetadata`         | Metadata about crop and sizes.             |
-| `error`                | `PickError?`           | Indicates if operation failed or canceled. |
+| Option                  | Default     | Description                                                    |
+| :---------------------- | :---------- | :------------------------------------------------------------- |
+| `source`                | `gallery`   | `ImageSource.gallery` or `.camera` (ignored with `sourceSheet`) |
+| `maxImages`             | —           | Item cap for multi picks                                       |
+| `imageQuality`          | —           | JPEG quality 0–100 (also used for cropping)                    |
+| `maxWidth` / `maxHeight`| —           | Downscale images                                               |
+| `preferredCameraDevice` | `rear`      | `CameraDevice.front` for selfies                               |
+| `maxVideoDuration`      | —           | Max recording length                                           |
+| `maxFileSizeBytes`      | —           | Reject larger files                                            |
+| `allowedMimeTypes`      | —           | e.g. `['image/*']`, `['video/mp4']`                            |
+| `wantToCrop`            | `false`     | Open the crop editor for single images                         |
+| `cropAspectRatio`       | —           | Initial ratio (`square`, `ratio4x3`, `ratio16x9`, …)          |
+| `lockCropAspectRatio`   | `false`     | Keep the ratio fixed                                           |
+| `cropShape`             | `rectangle` | `CropShape.circle` for avatars                                 |
+| `themeBrightness`       | app theme   | Light/dark for the built-in UI                                 |
+| `primaryColor`          | app theme   | Accent color for the built-in UI                               |
+| `labels`                | English     | `PickerLabels` for every built-in string                       |
+| `settingsDialogTitle`, `settingsDialogMessage`, `settingsButtonLabel`, `cancelButtonLabel` | — | Permission dialog texts |
+| `logTag`                | —           | Tag for debug logs                                             |
 
-> 💡 Use `.isEmpty` to check if no item was selected.
+### Results
 
----
+`PickResultSingle` — `item` (`PickedMedia?`), `error` (`PickError?`), `permissionResolution`, `metadata` (crop info, sizes), `removeRequested`.
 
-### 🧾 **PickResultMultiple**
+`PickResultMultiple` — `items`, `rejected` (`List<RejectedMedia>`), `error`, `permissionResolution`, `removeRequested`.
 
-Returned from `pickMultiImage()`.
+`PickedMedia` — `path`, `name`, `mimeType`, `sizeInBytes`, `width`, `height`, `isImage`, `isVideo`, `readAsBytes()`.
 
-| Field                  | Type                   | Description                                |
-| :--------------------- | :--------------------- | :----------------------------------------- |
-| `items`                | `List<PickedMedia>`    | All picked images. Empty if none.          |
-| `permissionResolution` | `PermissionResolution` | Final permission state.                    |
-| `error`                | `PickError?`           | Indicates if operation failed or canceled. |
-
-> 💡 Use `.isEmpty` to check if no images were selected.
-
----
-
-### 🧠 **PickMetadata**
-
-Extra info for debugging and analytics.
-
-| Field          | Type    | Description                   |
-| :------------- | :------ | :---------------------------- |
-| `cropApplied`  | `bool`  | Whether cropping was applied. |
-| `originalSize` | `Size?` | Size before transformations.  |
-| `finalSize`    | `Size?` | Size after transformations.   |
-
----
-
-### ⚠️ **PickError**
-
-Typed error codes for pick operations.
-
-| Value              | Description                                             |
-| :----------------- | :------------------------------------------------------ |
-| `canceled`         | User canceled selection.                                |
-| `cropCanceled`     | User canceled cropping.                                 |
-| `permissionDenied` | Permission denied (see `permissionResolution`).         |
-| `io`               | I/O or platform failure.                                |
-| `unknown`          | Unknown reason.                                         |
+`PickError` — `canceled`, `cropCanceled`, `permissionDenied`, `fileTooLarge`, `unsupportedType`, `io`, `unknown`.
 
 ---
 
-### 🔐 **PermissionResolution**
+## Upgrading to 2.0
 
-Represents the final permission outcome.
+Most apps need no changes. Check these:
 
-| Field               | Type   | Description                                  |
-| :------------------ | :----- | :------------------------------------------- |
-| `granted`           | `bool` | True if any form of access was granted.      |
-| `limited`           | `bool` | True if access is limited (iOS/Android 14+). |
-| `permanentlyDenied` | `bool` | True if user must change settings manually.  |
+- `PickError` gained `fileTooLarge` and `unsupportedType`, and `MediaType` gained `any`; exhaustive `switch` statements need the new cases.
+- Multi picks return `PickError.canceled` when nothing was picked (previously `null`).
+- `wantToCrop` now opens a crop editor on desktop (previously it returned the original image).
+- Web: you can delete the cropperjs `<script>`/`<link>` tags from `web/index.html`.
 
-#### Factories
+See the [changelog](CHANGELOG.md) for everything else.
 
-| Factory                                 | Description                           |
-| :-------------------------------------- | :------------------------------------ |
-| `PermissionResolution.grantedFull()`    | Full access granted.                  |
-| `PermissionResolution.grantedLimited()` | Limited access granted.               |
-| `PermissionResolution.denied()`         | Access denied (optionally permanent). |
+## FAQ
 
----
+**Do I need `READ_MEDIA_IMAGES` on Android?** No. Gallery picks use the system photo picker, which needs no permission. Leaving it out keeps you compliant with Google Play's photo and video policy.
 
-## 👤 Author
+**Why does my Android build ask for compileSdk 37?** `permission_handler` 13 requires it; set `compileSdk = 37` as shown in [Android setup](#android).
 
-Created with ❤️ by [**Jaimin Kavathia**](https://jaimin-kavathia.github.io/) - 💼 [LinkedIn](https://in.linkedin.com/in/jaimin-kavathia-flutter-developer)
+**Can I use my own UI and only use the permission handling?** Yes — `PermissionManager().ensureMediaPermission(...)` is public.
 
----
+## Contributing
 
-## 📜 License
+Issues and pull requests are welcome on [GitHub](https://github.com/jaimin-kavathia/adaptive_media_picker/issues). The README images are rendered from the real widgets; regenerate them with `cd example && flutter test tool/screenshots_test.dart`.
 
-Licensed under the [**MIT License**](LICENSE).
-Free for personal & commercial use.
+## License
 
----
-
-<p align="center">
-  ⭐ <strong>If you like this package, give it a star on <a href="https://github.com/jaimin-kavathia/adaptive_media_picker">GitHub</a> & <a href="https://pub.dev/packages/adaptive_media_picker">pub.dev</a>!</strong>
-</p>
+MIT — see [LICENSE](LICENSE). Created by [Jaimin Kavathia](https://jaimin-kavathia.github.io/) · [LinkedIn](https://in.linkedin.com/in/jaimin-kavathia-flutter-developer).

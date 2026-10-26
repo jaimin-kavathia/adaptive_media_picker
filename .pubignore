@@ -6,9 +6,11 @@ build/
 example/build/
 *.lock
 coverage/
-install.sh
 
 # Old moved files (kept in repo history but not published)
 lib/src/limited_access_picker.dart
 lib/src/models.dart
 lib/src/permission_manager.dart
+
+# README images are loaded from GitHub; keep them out of the package.
+assets/

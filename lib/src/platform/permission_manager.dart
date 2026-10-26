@@ -117,8 +117,9 @@ class PermissionManager {
   /// Maps `smart_permission` results onto a [PermissionResolution].
   PermissionResolution _toResolution(Iterable<SmartPermissionResult> results) {
     if (results.isNotEmpty && results.every((r) => r.canProceed)) {
-      final bool limited =
-          results.any((r) => r == SmartPermissionResult.limited);
+      final bool limited = results.any(
+        (r) => r == SmartPermissionResult.limited,
+      );
       return limited
           ? PermissionResolution.grantedLimited()
           : PermissionResolution.grantedFull();

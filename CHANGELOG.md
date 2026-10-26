@@ -1,3 +1,79 @@
+## 2.0.0 — 2026-10-26
+
+New pickers, an adaptive source sheet, validation, cropping on every
+platform, and WASM compatibility.
+
+**Breaking (small):** `PickError` gains `fileTooLarge` and
+`unsupportedType`, and `MediaType` gains `any` — exhaustive `switch`
+statements over them need the new cases. Multi picks now return
+`PickError.canceled` when nothing is picked, and `wantToCrop` now opens a
+crop editor on desktop instead of returning the original image.
+
+New features:
+
+- **Source sheet:** pass `sourceSheet: SourceSheetOptions(...)` to any pick
+  method to let users choose "Take photo" or "Choose from gallery" — a
+  Cupertino action sheet on iOS/macOS, a Material bottom sheet elsewhere.
+  An optional "Remove" option sets `removeRequested` on the result.
+  `showSourceSheet()` returns the choice on its own.
+- **New pickers:** `pickMultiVideo()`, `pickMedia()` (image or video) and
+  `pickMultipleMedia()` (images and videos together).
+- **Circle crop** via `PickOptions.cropShape: CropShape.circle`, on every
+  platform.
+- **Validation:** `PickOptions.maxFileSizeBytes` and
+  `PickOptions.allowedMimeTypes` (wildcards like `image/*`). Single picks
+  return `PickError.fileTooLarge` / `PickError.unsupportedType`; multi picks
+  keep valid items and list the others in `PickResultMultiple.rejected`.
+- **Camera options:** `PickOptions.preferredCameraDevice` (e.g. front
+  camera) and `PickOptions.maxVideoDuration`.
+- **Richer `PickedMedia`:** `name`, `sizeInBytes`, `isImage`, `isVideo` and
+  `readAsBytes()`, which also works on Web where `path` is a blob URL.
+- **Translatable UI:** `PickOptions.labels` (`PickerLabels`) covers the crop
+  editor, native cropper toolbar title and limited-access sheet.
+- **`recoverLostData()`** recovers a pick lost when Android destroyed the
+  activity (e.g. while the camera was open).
+- `CameraDevice` is re-exported, like `ImageSource`.
+
+Changes and fixes:
+
+- **Cropping now works on all 6 platforms.** Web, macOS, Windows and Linux
+  use a new built-in Flutter crop editor (built on `crop_your_image`) with
+  aspect-ratio presets and `lockCropAspectRatio` support. Android and iOS
+  keep the native cropper. Previously, `wantToCrop` on desktop silently
+  returned the original image with `PickError.cropCanceled`.
+- **No web setup for cropping.** The cropperjs `<script>`/`<link>` tags in
+  `web/index.html` are no longer needed and can be removed.
+- **WASM compatible.** `image_cropper` is no longer imported on web; it
+  pulled `dart:io` into the web import graph.
+- `image_cropper` constraint widened to `>=12.2.1 <14.0.0` (13.x supported
+  without raising the minimum Flutter version).
+- Picker failures (e.g. `PlatformException` from `image_picker`) are now
+  caught and returned as `PickError.io` instead of being thrown. They are
+  logged with `PickOptions.logTag`, which was previously unused.
+- `pickMultiImage` no longer falls back to the limited-access grid when
+  `image_picker` throws (that grid needs Photos permission the package no
+  longer requests on Android, and isn't available on Windows/Linux); it
+  returns `PickError.io`. It now also forwards `maxWidth`/`maxHeight`, and
+  returns `PickError.canceled` when nothing is picked. A `maxImages` of 0 or
+  less is treated as "no limit" instead of throwing `ArgumentError`.
+- `PickedMedia.mimeType` is now filled in (platform-reported, or derived
+  from the file extension), and `width`/`height` are set for picked images.
+- The native cropper now uses `imageQuality` as its output quality (it was
+  always 100, so cropped files could be larger than uncropped ones) and
+  keeps PNGs as PNG.
+- Decoded images used for size lookup are now disposed.
+- Limited-access sheet: fixed `setState() called after dispose()` when the
+  sheet closes while loading or after "Open Settings"; the selection badge
+  now uses the theme's primary color (or `primaryColor`); the Done button
+  shows the selection count; album loading errors no longer crash the sheet.
+- Docs: rewrote the README with usage recipes and new screenshots rendered
+  from the real widgets (`example/tool/screenshots_test.dart`), corrected the
+  platform matrix (limited-access UX is iOS-only; cropping is everywhere) and
+  documented the remaining public API. README images are no longer shipped
+  in the package archive.
+- Built-in crop editor shows the whole image on a dark backdrop (it used to
+  zoom landscape photos) with fully visible corner handles.
+
 ## 1.2.0 — 2026-08-26
 
 Google Play Photo and Video Permissions policy compliance.

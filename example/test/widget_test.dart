@@ -13,7 +13,7 @@ void main() {
     await tester.pumpWidget(const ExampleApp());
 
     // AppBar title
-    expect(find.text('adaptive_media_picker example'), findsOneWidget);
+    expect(find.text('Media Picker Demo'), findsOneWidget);
     // Buttons present
     expect(find.text('Pick image (gallery)'), findsOneWidget);
     expect(find.text('Pick multiple images (gallery)'), findsOneWidget);
@@ -24,10 +24,12 @@ void main() {
 
     // Tap a button to ensure no exceptions in basic interaction; we don't assert result content here.
     await tester.tap(find.text('Pick image (gallery)'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
     await tester.pump();
 
-    // Status should update to 'Requesting...' then to some value after async; allow a short settle.
-    // We only check it changes from initial to avoid flakiness in headless envs.
+    // No picker plugin in tests, so the pick fails; the status must update.
     expect(find.text('Ready'), findsNothing);
   });
 }
